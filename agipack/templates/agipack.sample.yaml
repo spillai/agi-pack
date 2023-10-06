@@ -1,13 +1,12 @@
 images:
-  base-gpu:
+  base-cpu:
     base: python:3.8.10-slim
     system:
       - wget
-      - build-essential
     python: 3.8.10
     pip:
       - loguru
-      - typer
+      - scikit-learn
     run:
       - ls -la
     env:

@@ -3,7 +3,7 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "agibuilder"
+name = "agi-pack"
 version = "0.1.0"
 description = "Dockerfile generator for AGI -- nothing more, nothing less."
 license = {file = "LICENSE"}
@@ -39,15 +39,15 @@ dev = [
 ]
 
 [project.urls]
-"Documentation" = "https://spillai.github.io/agibuiler/"
-"Source Code" = "https://github.com/spillai/agibuilder"
-"Homepage" = "https://spillai.github.io/agibuiler/"
+"Documentation" = "https://spillai.github.io/agi-pack/"
+"Source Code" = "https://github.com/spillai/agi-pack"
+"Homepage" = "https://spillai.github.io/agi-pack/"
 
 [project.scripts]
-agibuilder = "agibuilder.cli:app"
+agi-pack = "agipack.cli:app"
 
 [tool.setuptools.packages.find]
-include = ["agibuilder*","scripts*"]
+include = ["agipack*","scripts*"]
 exclude = [
     "build",
     "conda",
