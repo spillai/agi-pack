@@ -1,0 +1,14 @@
+images:
+  base-gpu:
+    base: python:3.8.10-slim
+    system:
+      - wget
+      - build-essential
+    python: 3.8.10
+    pip:
+      - loguru
+      - typer
+    run:
+      - ls -la
+    env:
+      MY_ENV_VAR: value
