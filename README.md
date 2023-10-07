@@ -20,7 +20,7 @@
 
 Docker has become the de-facto standard for building and managing isolated runtime environments for ML. But it is broken for ML development where you need to experiment and re-configure your environments constantly. Production is another nightmare -- large docker images (`10GB+`), adding `5-10GB` model weights into images (for warm-start purposes), high cache-miss rates for docker images, sloppy package management to name a few.
 
-**More pain** f you've ever tried to roll your own Dockerfiles with best-practices and fully understanding their internals, you'll still find yourself building, and re-building, and re-building these images across a whole host of repositories.
+**More pain** If you've ever tried to roll your own Dockerfiles with best-practices and fully understanding their internals, you'll still find yourself building, and re-building, and re-building these images across a whole host of repositories.
 
 **Even more pain** Having to build Dockerfile(s) for `/dev`, `/prod`, and `test` all turn out to be a nightmare when you add the complexity of hardware targets (CPUs, GPUs, TPUs etc), drivers, python, virtual environments, build and runtime dependencies.
 
