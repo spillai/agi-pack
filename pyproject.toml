@@ -35,7 +35,8 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "pre-commit",
-    "pytest"
+    "pytest",
+    "build"
 ]
 
 [project.urls]
@@ -47,19 +48,17 @@ dev = [
 agi-pack = "agipack.cli:app"
 
 [tool.setuptools.packages.find]
-include = ["agipack*","scripts*"]
+include = ["agipack*"]
 exclude = [
     "build",
-    "conda",
     "dist",
     "docs",
-    "requirements",
     "tests",
 ]
 
 
 [tool.setuptools.package-data]
-"*" = ["*.jinja2", "test_data/*.*"]
+"*" = ["*.j2", "*.yaml"]
 
 [tool.black]
 line-length = 119

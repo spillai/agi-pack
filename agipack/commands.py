@@ -9,7 +9,7 @@ class ImageConfig(BaseModel):
 
     images:
         <target>:
-            name: <name>
+            image: <repository name>
             base: <base>
             env:
                 <key>: <value>
@@ -23,8 +23,10 @@ class ImageConfig(BaseModel):
 
     """
 
-    name: str = Field(default="agi")
-    """Name of the image."""
+    image: str
+    """Name of the image repository.
+    Defaults to the <target> name if not provided.
+    """
 
     base: str = Field(default="python:3.8.10-slim")
     """Base docker image to use (FROM clause in the Dockerfile)."""
@@ -57,27 +59,53 @@ class AGIPackConfig(BaseModel):
     """AGIPack configuration specified in `agipack.yaml`
 
     images:
-        agi-base:
-            name: agi-basename
+        base-cpu:
+            image: autonomi/agi:latest-base-cpu
             base: python:3.8.10-slim
             env:
                 MY_ENV: value
 
-        agi-base-dev:
+        base-dev:
             ...
 
-        agi-base-prod:
+        base-prod:
             ...
     """
 
     images: Dict[str, ImageConfig]
 
     @classmethod
-    def load_yaml(cls, filename: str) -> None:
+    def load_yaml(cls, filename: str) -> "AGIPackConfig":
+        """Load the AGIPack configuration from a YAML file.
+
+        Args:
+            filename (str): Path to the YAML file.
+        Returns:
+            AGIPackConfig: AGIPack configuration.
+        """
+        # Load the YAML file
         with open(filename, "r") as f:
             data = yaml.safe_load(f)
+
+        # Load default image target if not specified
+        for target, config in data["images"].items():
+            if "image" not in config:
+                config["image"] = target
+            data["images"][target] = ImageConfig(**config)
         return cls(**data)
 
     def save_yaml(self, filename: str) -> None:
+        """Save the AGIPack configuration to a YAML file.
+
+        Args:
+            filename (str): Path to the YAML file.
+        """
+        # Pre-process the config to remove empty lists, etc.
+        data = self.model_dump()
+        for _, config in data["images"].items():
+            for key in ["env", "system", "pip", "add"]:
+                if not len(config[key]):
+                    del config[key]
+        # Save the YAML file
         with open(filename, "w") as f:
-            yaml.safe_dump(self.model_dump(), f, sort_keys=False)
+            yaml.safe_dump(data, f, sort_keys=False)

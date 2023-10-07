@@ -1,5 +1,6 @@
 export DOCKER_BUILDKIT ?= 1
 export COMPOSE_DOCKER_CLI_BUILD ?= 1
+AGIPACK_VERSION := $(shell agi-pack version)
 
 .DEFAULT_GOAL := help
 .PHONY: default clean clean-build clean-pyc clean-test test test-coverage develop install style
@@ -8,7 +9,7 @@ SHELL := /bin/bash
 default: help;
 
 help:
-	@echo "agibuilder 🛠️🧠: Dockerfile generator for Machine Learning"
+	@echo "agi-pack (${AGIPACK_VERSION}): Dockerfile generator for AGI -- nothing more, nothing less."
 	@echo ""
 	@echo "Usage: make <target>"
 	@echo ""
@@ -59,3 +60,12 @@ test: ## Basic tests
 dist: clean ## builds source and wheel package
 	python -m build --sdist --wheel
 	ls -lh dist
+
+create-pypi-release: dist  ## package, git tag/release and upload a release to PyPI
+	@echo -n "Are you sure you want to create a PyPI release? [y/N] " && read ans && [ $${ans:-N} = y ]
+	twine upload dist/*.whl
+	echo "Successfully created release for `agi-pack`."
+
+create-tag:
+	git tag -a ${AGIPACK_VERSION} -m "Release ${AGIPACK_VERSION}"
+	git push origin ${AGIPACK_VERSION}

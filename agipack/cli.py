@@ -1,3 +1,4 @@
+import importlib
 from pathlib import Path
 
 import typer
@@ -13,6 +14,12 @@ def main(ctx: typer.Context):
     """Dockerfile generator for AGI -- nothing more, nothing less."""
     if ctx.invoked_subcommand is None:
         typer.echo(ctx.get_help())
+
+
+@app.command()
+def version():
+    """Print the version number."""
+    typer.echo(importlib.metadata.version("agi-pack"))
 
 
 @app.command()
