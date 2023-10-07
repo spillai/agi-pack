@@ -50,7 +50,7 @@ class ImageConfig(BaseModel):
         return {"python_alias": python_alias, "prod": False}
 
     def dict(self):
-        return {**super().dict(), **self.additional_kwargs()}
+        return {**super().model_dump(), **self.additional_kwargs()}
 
 
 class AGIPackConfig(BaseModel):
@@ -80,4 +80,4 @@ class AGIPackConfig(BaseModel):
 
     def save_yaml(self, filename: str) -> None:
         with open(filename, "w") as f:
-            yaml.safe_dump(self.dict(), f, sort_keys=False)
+            yaml.safe_dump(self.model_dump(), f, sort_keys=False)

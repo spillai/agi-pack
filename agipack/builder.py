@@ -1,10 +1,11 @@
 import logging
 import subprocess
+from typing import Dict
 
 from jinja2 import Environment, FileSystemLoader
 
 from agipack.commands import AGIPackConfig, ImageConfig
-from agipack.constants import AGI_BUILD_FILENAME, AGI_BUILD_TEMPLATE_DIR
+from agipack.constants import AGIPACK_BASENAME, AGIPACK_DOCKERFILE_TEMPLATE, AGIPACK_TEMPLATE_DIR
 
 logger = logging.getLogger(__name__)
 
@@ -46,9 +47,9 @@ class AGIPack:
     TL;DR - Yet another DSL for building machine-learning Dockerfiles.
     """
 
-    def __init__(self, config_path: str = AGI_BUILD_FILENAME, **kwargs):
+    def __init__(self, config_path: str = AGIPACK_BASENAME, **kwargs):
         self.config = AGIPackConfig.load_yaml(config_path)
-        self.template_env = Environment(loader=FileSystemLoader(searchpath=AGI_BUILD_TEMPLATE_DIR))
+        self.template_env = Environment(loader=FileSystemLoader(searchpath=AGIPACK_TEMPLATE_DIR))
 
     def generate_dockerfile(self, target: str, image_config: ImageConfig) -> str:
         """Generates a Dockerfile for the given target image.
@@ -57,8 +58,8 @@ class AGIPack:
             target (str): Target image name.
             image_config (ImageConfig): Image configuration.
         """
-        template = self.template_env.get_template("Dockerfile.j2")
-        image_dict = image_config.dict()
+        template = self.template_env.get_template(AGIPACK_DOCKERFILE_TEMPLATE)
+        image_dict = image_config.model_dump()
         image_dict["target"] = target
         content = template.render(image_dict)
 
@@ -85,10 +86,14 @@ class AGIPack:
             print(line, end="")
         process.wait()
 
-    def build_all(self):
+    def build_all(self) -> Dict[str, str]:
         """Generates Dockerfiles and builds images for all the images defined in the YAML configuration."""
+
+        dockerfiles = {}
         for image_name, image_config in self.config.images.items():
             logger.info(f"📦 Generating Dockerfile [{image_name}]")
             filename = self.generate_dockerfile(image_name, image_config)
             print(f"📦 Generated {filename} [{image_name}]")
             print(f"📦 Build `{image_name}`: `docker build -f {filename} --target {image_name} .`")
+            dockerfiles[image_name] = filename
+        return dockerfiles
