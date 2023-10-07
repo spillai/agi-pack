@@ -1,3 +1,4 @@
+import os
 import subprocess
 import tempfile
 from pathlib import Path
@@ -43,10 +44,12 @@ def test_parse_yaml(sample_config_filename):
 
 
 def test_build_all(builder):
-    dockerfiles = builder.build_all()
-    assert "base-cpu" in dockerfiles
-    assert dockerfiles["base-cpu"] == "Dockerfile.base-cpu"
-    assert Path(dockerfiles["base-cpu"]).exists()
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        os.chdir(tmp_dir)
+        dockerfiles = builder.build_all()
+        assert "base-cpu" in dockerfiles
+        assert dockerfiles["base-cpu"] == "Dockerfile"
+        assert Path(dockerfiles["base-cpu"]).exists()
 
     # Use hadolint within docker to lint/check the generated Dockerfile
     cmd = f"docker run --rm -i hadolint/hadolint < {dockerfiles['base-cpu']}"
@@ -60,3 +63,14 @@ def test_build_all(builder):
     )
     for line in iter(process.stdout.readline, ""):
         print(line, end="")
+
+
+def test_builder_cls(sample_config_filename):
+    # Create an AGIPack instance where the output
+    # directory is specified
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        builder = AGIPack(sample_config_filename, output_filename=str(Path(tmp_dir) / "Dockerfile"))
+        dockerfiles = builder.build_all()
+        assert "base-cpu" in dockerfiles
+        assert Path(dockerfiles["base-cpu"]).exists()
+        assert Path(dockerfiles["base-cpu"]).parent == Path(tmp_dir)

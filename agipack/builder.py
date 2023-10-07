@@ -1,5 +1,6 @@
 import logging
 import subprocess
+from pathlib import Path
 from typing import Dict
 
 from jinja2 import Environment, FileSystemLoader
@@ -43,12 +44,14 @@ class AGIPack:
 
     Args:
         config_path (str): Path to the YAML configuration file.
+        output_directory (str): Output directory for the generated Dockerfiles.
 
     TL;DR - Yet another DSL for building machine-learning Dockerfiles.
     """
 
-    def __init__(self, config_path: str = AGIPACK_BASENAME, **kwargs):
+    def __init__(self, config_path: str = AGIPACK_BASENAME, output_filename: str = "Dockerfile"):
         self.config = AGIPackConfig.load_yaml(config_path)
+        self.output_filename = output_filename
         self.template_env = Environment(loader=FileSystemLoader(searchpath=AGIPACK_TEMPLATE_DIR))
 
     def generate_dockerfile(self, target: str, image_config: ImageConfig) -> str:
@@ -63,10 +66,16 @@ class AGIPack:
         image_dict["target"] = target
         content = template.render(image_dict)
 
-        filename = f"Dockerfile.{target}"
-        with open(filename, "w") as f:
-            f.write(content)
-        return filename
+        # Write the Dockerfile to the specified output filename
+        if not Path(self.output_filename).parent.exists():
+            Path(self.output_filename).parent.mkdir(parents=True)
+        try:
+            with open(str(Path(self.output_filename).absolute()), "w") as f:
+                f.write(content)
+        except Exception as e:
+            logger.error(f"Error writing Dockerfile to {self.output_filename}: {e}")
+            raise Exception(f"Error writing Dockerfile to {self.output_filename}: {e}")
+        return self.output_filename
 
     def build_image(self, target: str, tag: str, filename: str) -> None:
         """Builds a Docker image using the generated Dockerfile.
@@ -88,12 +97,9 @@ class AGIPack:
 
     def build_all(self) -> Dict[str, str]:
         """Generates Dockerfiles and builds images for all the images defined in the YAML configuration."""
-
         dockerfiles = {}
         for image_name, image_config in self.config.images.items():
             logger.info(f"📦 Generating Dockerfile [{image_name}]")
             filename = self.generate_dockerfile(image_name, image_config)
-            print(f"📦 Generated {filename} [{image_name}]")
-            print(f"📦 Build `{image_name}`: `docker build -f {filename} --target {image_name} .`")
             dockerfiles[image_name] = filename
         return dockerfiles

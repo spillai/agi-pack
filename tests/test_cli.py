@@ -41,4 +41,9 @@ def test_generate(runner):
         # Use absolute path for the config file
         result = runner.invoke(app, ["generate", "-c", AGIPACK_SAMPLE_FILENAME])
         assert result.exit_code == 0
-        assert Pathlib("Dockerfile.base-cpu").exists()
+        assert Pathlib("Dockerfile").exists()
+
+        # Use absolute path for the config file
+        result = runner.invoke(app, ["generate", "-c", AGIPACK_SAMPLE_FILENAME, "-o", "Dockerfile.base"])
+        assert result.exit_code == 0
+        assert Pathlib("Dockerfile.base").exists()
