@@ -1,5 +1,4 @@
 import logging
-import subprocess
 from pathlib import Path
 from typing import Dict
 
@@ -86,21 +85,3 @@ class AGIPack:
             filename = self.generate_dockerfile(image_name, image_config)
             dockerfiles[image_name] = filename
         return dockerfiles
-
-    def build_image(self, target: str, tag: str, filename: str) -> None:
-        """Builds a Docker image using the generated Dockerfile.
-
-        Args:
-            target (str): Target image name.
-            tag (str): Tag for the Docker image.
-            filename (str): Path to the generated Dockerfile.
-        """
-        process = subprocess.Popen(
-            ["docker", "build", "-f", filename, "--target", target, "-t", tag, "."],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            universal_newlines=True,
-        )
-        for line in iter(process.stdout.readline, ""):
-            print(line, end="")
-        process.wait()

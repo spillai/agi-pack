@@ -95,13 +95,6 @@ class AGIPackConfig:
     images: Dict[str, ImageConfig]
     """Dictionary of targets to build and their configurations."""
 
-    _target_dependencies: Optional[Dict[str, List[str]]] = field(default=None, init=False)
-    """Dictionary of targets and their parents."""
-
-    def __post_init__(self):
-        """Post-initialization hook."""
-        self._build_target_dependencies()
-
     @classmethod
     def load_yaml(cls, filename: str) -> "AGIPackConfig":
         """Load the AGIPack configuration from a YAML file.
@@ -141,14 +134,3 @@ class AGIPackConfig:
         # Save the YAML file
         with open(filename, "w") as f:
             yaml.safe_dump(data, f, sort_keys=False)
-
-    def _build_target_dependencies(self) -> None:
-        """Build the tree of dependencies for all the targets."""
-        self._target_dependencies = {}
-        for target, config in self.images.items():
-            print(f"🌳 {target} -> {config.base}")
-            if config.base not in self._target_dependencies:
-                self._target_dependencies[config.base] = []
-                continue
-            self._target_dependencies[config.base].append(target)
-            print(f"🌳 {target} -> {config.base}")
