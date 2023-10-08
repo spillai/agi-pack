@@ -63,7 +63,7 @@ class AGIPack:
             image_config (ImageConfig): Image configuration.
         """
         template = self.template_env.get_template(AGIPACK_DOCKERFILE_TEMPLATE)
-        image_dict = image_config.model_dump()
+        image_dict = image_config.dict()
         image_dict["target"] = target
         content = template.render(image_dict)
 
@@ -77,6 +77,15 @@ class AGIPack:
             logger.error(f"Error writing Dockerfile to {self.output_filename}: {e}")
             raise Exception(f"Error writing Dockerfile to {self.output_filename}: {e}")
         return self.output_filename
+
+    def build_all(self) -> Dict[str, str]:
+        """Generates Dockerfiles and builds images for all the images defined in the YAML configuration."""
+        dockerfiles = {}
+        for image_name, image_config in self.config.images.items():
+            logger.info(f"📦 Generating Dockerfile [{image_name}]")
+            filename = self.generate_dockerfile(image_name, image_config)
+            dockerfiles[image_name] = filename
+        return dockerfiles
 
     def build_image(self, target: str, tag: str, filename: str) -> None:
         """Builds a Docker image using the generated Dockerfile.
@@ -95,12 +104,3 @@ class AGIPack:
         for line in iter(process.stdout.readline, ""):
             print(line, end="")
         process.wait()
-
-    def build_all(self) -> Dict[str, str]:
-        """Generates Dockerfiles and builds images for all the images defined in the YAML configuration."""
-        dockerfiles = {}
-        for image_name, image_config in self.config.images.items():
-            logger.info(f"📦 Generating Dockerfile [{image_name}]")
-            filename = self.generate_dockerfile(image_name, image_config)
-            dockerfiles[image_name] = filename
-        return dockerfiles

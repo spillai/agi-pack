@@ -21,12 +21,39 @@ images:
 """
 
 
+SAMPLE_CONFIG_WITH_DEPENDENCIES = """
+images:
+  base-cpu:
+    system:
+      - wget
+    python: 3.8.10
+    pip:
+      - scikit-learn
+    run:
+      - echo "Hello, world!"
+
+  dev-cpu:
+    base: base-cpu
+    system:
+      - build-essential
+"""
+
+
 @pytest.fixture(scope="module")
 def sample_config_filename():
     with tempfile.TemporaryDirectory() as tmp_dir:
         filename = f"{tmp_dir}/{AGIPACK_BASENAME}"
         with open(str(filename), "w") as f:
             f.write(SAMPLE_CONFIG)
+        yield filename
+
+
+@pytest.fixture(scope="module")
+def sample_config_filename_with_deps():
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        filename = f"{tmp_dir}/{AGIPACK_BASENAME}"
+        with open(str(filename), "w") as f:
+            f.write(SAMPLE_CONFIG_WITH_DEPENDENCIES)
         yield filename
 
 
@@ -74,5 +101,19 @@ def test_builder_cls(sample_config_filename):
         builder = AGIPack(config, output_filename=str(Path(tmp_dir) / "Dockerfile"))
         dockerfiles = builder.build_all()
         assert "base-cpu" in dockerfiles
+        assert Path(dockerfiles["base-cpu"]).exists()
+        assert Path(dockerfiles["base-cpu"]).parent == Path(tmp_dir)
+
+
+@pytest.mark.skip(reason="Not implemented yet")
+def test_builder_cls_with_deps(sample_config_filename_with_deps):
+    # Create an AGIPack instance where the output
+    # directory is specified
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        config = AGIPackConfig.load_yaml(sample_config_filename_with_deps)
+        builder = AGIPack(config, output_filename=str(Path(tmp_dir) / "Dockerfile"))
+        dockerfiles = builder.build_all()
+        assert "base-cpu" in dockerfiles
+        assert "dev-cpu" in dockerfiles
         assert Path(dockerfiles["base-cpu"]).exists()
         assert Path(dockerfiles["base-cpu"]).parent == Path(tmp_dir)
