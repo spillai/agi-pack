@@ -1,0 +1,15 @@
+images:
+  base-cpu:
+    system:
+      - wget
+    python: 3.8
+    pip:
+      - scikit-learn
+    run:
+      - echo "Hello, world!"
+
+  dev-cpu:
+    base: base-cpu
+    python: 3.9
+    system:
+      - build-essential

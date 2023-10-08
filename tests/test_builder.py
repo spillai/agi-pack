@@ -6,58 +6,10 @@ from pathlib import Path
 import pytest
 
 from agipack.builder import AGIPack, AGIPackConfig
-from agipack.constants import AGIPACK_BASENAME, AGIPACK_SAMPLE_FILENAME
-
-SAMPLE_CONFIG = """
-images:
-  base-cpu:
-    system:
-      - wget
-    python: 3.8.10
-    pip:
-      - scikit-learn
-    run:
-      - echo "Hello, world!"
-"""
+from agipack.constants import AGIPACK_SAMPLE_FILENAME
 
 
-SAMPLE_CONFIG_WITH_DEPENDENCIES = """
-images:
-  base-cpu:
-    system:
-      - wget
-    python: 3.8.10
-    pip:
-      - scikit-learn
-    run:
-      - echo "Hello, world!"
-
-  dev-cpu:
-    base: base-cpu
-    system:
-      - build-essential
-"""
-
-
-@pytest.fixture(scope="module")
-def sample_config_filename():
-    with tempfile.TemporaryDirectory() as tmp_dir:
-        filename = f"{tmp_dir}/{AGIPACK_BASENAME}"
-        with open(str(filename), "w") as f:
-            f.write(SAMPLE_CONFIG)
-        yield filename
-
-
-@pytest.fixture(scope="module")
-def sample_config_filename_with_deps():
-    with tempfile.TemporaryDirectory() as tmp_dir:
-        filename = f"{tmp_dir}/{AGIPACK_BASENAME}"
-        with open(str(filename), "w") as f:
-            f.write(SAMPLE_CONFIG_WITH_DEPENDENCIES)
-        yield filename
-
-
-@pytest.fixture(scope="module")
+@pytest.fixture
 def builder(sample_config_filename):
     config = AGIPackConfig.load_yaml(sample_config_filename)
     yield AGIPack(config)
@@ -93,11 +45,11 @@ def test_build_all(builder):
         print(line, end="")
 
 
-def test_builder_cls(sample_config_filename):
+def test_builder_cls(test_data_dir):
     # Create an AGIPack instance where the output
     # directory is specified
     with tempfile.TemporaryDirectory() as tmp_dir:
-        config = AGIPackConfig.load_yaml(sample_config_filename)
+        config = AGIPackConfig.load_yaml(test_data_dir / "agibuild-minimal.yaml")
         builder = AGIPack(config, output_filename=str(Path(tmp_dir) / "Dockerfile"))
         dockerfiles = builder.build_all()
         assert "base-cpu" in dockerfiles
@@ -106,11 +58,11 @@ def test_builder_cls(sample_config_filename):
 
 
 @pytest.mark.skip(reason="Not implemented yet")
-def test_builder_cls_with_deps(sample_config_filename_with_deps):
+def test_builder_cls_with_deps(test_data_dir):
     # Create an AGIPack instance where the output
     # directory is specified
     with tempfile.TemporaryDirectory() as tmp_dir:
-        config = AGIPackConfig.load_yaml(sample_config_filename_with_deps)
+        config = AGIPackConfig.load_yaml(test_data_dir / "agibuild-with-deps.yaml")
         builder = AGIPack(config, output_filename=str(Path(tmp_dir) / "Dockerfile"))
         dockerfiles = builder.build_all()
         assert "base-cpu" in dockerfiles

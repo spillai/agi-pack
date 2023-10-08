@@ -1,8 +1,10 @@
 import logging
 from dataclasses import asdict, field
-from typing import Dict, List, Optional
+from pathlib import Path
+from typing import Dict, List, Optional, Union
 
 import yaml
+from pydantic import field_validator
 from pydantic.dataclasses import dataclass
 
 logger = logging.getLogger(__name__)
@@ -99,8 +101,19 @@ class AGIPackConfig:
     images: Dict[str, ImageConfig]
     """Dictionary of targets to build and their configurations."""
 
+    @field_validator("images")
+    def validate_python_dependencies_for_nonbase_images(cls, images):
+        """Validate that all images have the same python dependency as the base image."""
+        version = None
+        for target, config in images.items():
+            if config.is_base_image():
+                version = config.python
+            elif config.python != version:
+                raise ValueError(f"Non-base image [{target}] must have the same python version as the base image")
+        return images
+
     @classmethod
-    def load_yaml(cls, filename: str) -> "AGIPackConfig":
+    def load_yaml(cls, filename: Union[str, Path]) -> "AGIPackConfig":
         """Load the AGIPack configuration from a YAML file.
 
         Args:
@@ -113,6 +126,11 @@ class AGIPackConfig:
         with open(filename, "r") as f:
             data = yaml.safe_load(f)
         logger.debug(f"AGIPack configuration: {data}")
+
+        # Validate the YAML file
+        images = data.get("images", {})
+        if not images:
+            raise ValueError("No images specified in the YAML file")
 
         # Load default image target if not specified
         for target, config in data["images"].items():

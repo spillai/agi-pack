@@ -4,7 +4,7 @@ from typing import Dict
 
 from jinja2 import Environment, FileSystemLoader
 
-from agipack.commands import AGIPackConfig, ImageConfig
+from agipack.config import AGIPackConfig, ImageConfig
 from agipack.constants import AGIPACK_DOCKERFILE_TEMPLATE, AGIPACK_TEMPLATE_DIR
 
 logger = logging.getLogger(__name__)
