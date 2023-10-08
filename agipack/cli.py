@@ -26,7 +26,7 @@ def version():
 
 @app.command()
 def init():
-    """Generate a sample agipack.yaml file."""
+    """Generate a sample agibuild.yaml file."""
     config = AGIPackConfig.load_yaml(str(AGIPACK_SAMPLE_FILENAME))
     config.save_yaml(AGIPACK_BASENAME)
     print(f"🎉 Sample `{AGIPACK_BASENAME}` file generated.")
@@ -58,8 +58,8 @@ def generate(
     """Generate the Dockerfile with optional overrides.
 
     Usage:
-        agi-pack generate -c agipack.yaml
-        agi-pack generate -c agipack.yaml -o docker/Dockerfile
+        agi-pack generate -c agibuild.yaml
+        agi-pack generate -c agibuild.yaml -o docker/Dockerfile
     """
     config = AGIPackConfig.load_yaml(config_filename)
     for _, image_config in config.images.items():

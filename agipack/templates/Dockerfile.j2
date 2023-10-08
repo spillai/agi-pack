@@ -92,6 +92,13 @@ RUN echo "export PATH=/opt/conda/envs/${PYENV}/bin:$PATH" >> ~/.bashrc
 RUN echo "export CONDA_DEFAULT_ENV=${PYENV}" >> ~/.bashrc
 RUN echo "mamba activate ${PYENV}" > ~/.bashrc
 
+# Run commands
+RUN \
+{%- for cmd in run %}
+    {{ cmd }} \
+{%- endfor %}
+    && echo "run commands complete"
+
 FROM base AS dev
 WORKDIR /app/$PROJECT-dev
 

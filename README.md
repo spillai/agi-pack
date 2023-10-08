@@ -63,13 +63,13 @@ agi-pack --install-completion <bash|zsh|fish|powershell|pwsh>
 
 ## Usage 🛠
 
-1. Create a simple YAML configuration file called `agipack.yaml` via `agi-pack init`:
+1. Create a simple YAML configuration file called `agibuild.yaml` via `agi-pack init`:
 
     ```bash
     agi-pack init
     ```
 
-2. Edit `agipack.yaml` to define your custom system and python packages
+2. Edit `agibuild.yaml` to define your custom system and python packages
 
     ```yaml
     images:
@@ -89,7 +89,7 @@ agi-pack --install-completion <bash|zsh|fish|powershell|pwsh>
 3. Generate the Dockerfile using `agi-pack generate`
 
     ```bash
-    agi-pack generate -c agipack.yaml
+    agi-pack generate -c agibuild.yaml
     ```
 
     You should see the following output:

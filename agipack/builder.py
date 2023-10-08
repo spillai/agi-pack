@@ -36,7 +36,7 @@ class AGIPack:
     Usage Example:
         ```python
         # Create an AGIPack instance
-        builder = AGIPack(config_path="agipack.yaml")
+        builder = AGIPack(config_path="agibuild.yaml")
 
         # Generate Dockerfiles and build images
         builder.generate_all()

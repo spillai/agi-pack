@@ -25,8 +25,8 @@ def test_init(runner):
         os.chdir(tmp_dir)
         result = runner.invoke(app, ["init"])
         assert result.exit_code == 0
-        assert "Sample `agipack.yaml` file generated." in result.output
-        assert os.path.exists("agipack.yaml")
+        assert "Sample `agibuild.yaml` file generated." in result.output
+        assert os.path.exists("agibuild.yaml")
 
 
 def test_generate(runner):

@@ -5,7 +5,7 @@ from pydantic import BaseModel, Field
 
 
 class ImageConfig(BaseModel):
-    """AGIPack configuration for a docker target specified in `agipack.yaml`
+    """AGIPack configuration for a docker target specified in `agibuild.yaml`
 
     images:
         <target>:
@@ -52,6 +52,9 @@ class ImageConfig(BaseModel):
     add: Optional[List[str]] = Field(default_factory=list)
     """List of files to copy into the image."""
 
+    run: Optional[List[str]] = Field(default_factory=list)
+    """List of commands to run in the image."""
+
     def additional_kwargs(self):
         """Additional kwargs to pass to the Jinja2 Dockerfile template."""
         python_alias = f"py{''.join(self.python.split('.')[:2])}"
@@ -62,7 +65,7 @@ class ImageConfig(BaseModel):
 
 
 class AGIPackConfig(BaseModel):
-    """AGIPack configuration specified in `agipack.yaml`
+    """AGIPack configuration specified in `agibuild.yaml`
 
     images:
         base-cpu:
@@ -109,7 +112,7 @@ class AGIPackConfig(BaseModel):
         # Pre-process the config to remove empty lists, etc.
         data = self.model_dump()
         for _, config in data["images"].items():
-            for key in ["env", "system", "pip", "requirements", "add"]:
+            for key in ["env", "system", "pip", "requirements", "add", "run"]:
                 if not len(config[key]):
                     del config[key]
         # Save the YAML file
