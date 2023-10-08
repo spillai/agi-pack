@@ -42,17 +42,31 @@ DEFAULT_TARGET_NAME = Path.cwd().name.strip("/")
 
 @app.command()
 def generate(
-    config: str = typer.Option(AGIPACK_BASENAME, "--config", "-c", help="Path to the YAML configuration file."),
+    config_filename: str = typer.Option(
+        AGIPACK_BASENAME, "--config", "-c", help="Path to the YAML configuration file."
+    ),
     output_filename: str = typer.Option(
         "Dockerfile", "--output-filename", "-o", help="Output filename for the generated Dockerfile."
+    ),
+    python: str = typer.Option(
+        None, "--python", "-p", help="Python version to use for the base image.", show_default=False
+    ),
+    base_image: str = typer.Option(
+        None, "--base", "-b", help="Base image to use for the base image.", show_default=False
     ),
 ):
     """Generate the Dockerfile with optional overrides.
 
     Usage:
         agi-pack generate -c agipack.yaml
-        agi-pack generate -c agipack.yaml -o docker/
+        agi-pack generate -c agipack.yaml -o docker/Dockerfile
     """
+    config = AGIPackConfig.load_yaml(config_filename)
+    for _, image_config in config.images.items():
+        if python:
+            image_config.python = python
+        if base_image:
+            image_config.base = base_image
     builder = AGIPack(config, output_filename=output_filename)
     dockerfiles = builder.build_all()
     for target, filename in dockerfiles.items():

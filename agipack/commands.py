@@ -23,7 +23,7 @@ class ImageConfig(BaseModel):
 
     """
 
-    image: str
+    image: str = Field(default="agi:latest")
     """Name of the image repository.
     Defaults to the <target> name if not provided.
     """
@@ -31,7 +31,7 @@ class ImageConfig(BaseModel):
     name: str = Field(default="agi")
     """Pretty-name of the project and environment in the image."""
 
-    base: str = Field(default="python:3.8.10-slim")
+    base: str = Field(default="debian:buster-slim")
     """Base docker image to use (FROM clause in the Dockerfile)."""
 
     env: Dict[str, str] = Field(default_factory=dict)
@@ -57,7 +57,7 @@ class ImageConfig(BaseModel):
         python_alias = f"py{''.join(self.python.split('.')[:2])}"
         return {"python_alias": python_alias, "prod": False}
 
-    def dict(self):
+    def model_dump(self):
         return {**super().model_dump(), **self.additional_kwargs()}
 
 

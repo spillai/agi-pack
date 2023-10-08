@@ -32,7 +32,8 @@ def sample_config_filename():
 
 @pytest.fixture(scope="module")
 def builder(sample_config_filename):
-    yield AGIPack(sample_config_filename)
+    config = AGIPackConfig.load_yaml(sample_config_filename)
+    yield AGIPack(config)
 
 
 def test_parse_yaml(sample_config_filename):
@@ -69,7 +70,8 @@ def test_builder_cls(sample_config_filename):
     # Create an AGIPack instance where the output
     # directory is specified
     with tempfile.TemporaryDirectory() as tmp_dir:
-        builder = AGIPack(sample_config_filename, output_filename=str(Path(tmp_dir) / "Dockerfile"))
+        config = AGIPackConfig.load_yaml(sample_config_filename)
+        builder = AGIPack(config, output_filename=str(Path(tmp_dir) / "Dockerfile"))
         dockerfiles = builder.build_all()
         assert "base-cpu" in dockerfiles
         assert Path(dockerfiles["base-cpu"]).exists()

@@ -6,7 +6,7 @@ from typing import Dict
 from jinja2 import Environment, FileSystemLoader
 
 from agipack.commands import AGIPackConfig, ImageConfig
-from agipack.constants import AGIPACK_BASENAME, AGIPACK_DOCKERFILE_TEMPLATE, AGIPACK_TEMPLATE_DIR
+from agipack.constants import AGIPACK_DOCKERFILE_TEMPLATE, AGIPACK_TEMPLATE_DIR
 
 logger = logging.getLogger(__name__)
 
@@ -43,14 +43,15 @@ class AGIPack:
         ```
 
     Args:
-        config_path (str): Path to the YAML configuration file.
+        config (AGIPackConfig): AGIPack configuration.
         output_directory (str): Output directory for the generated Dockerfiles.
 
     TL;DR - Yet another DSL for building machine-learning Dockerfiles.
     """
 
-    def __init__(self, config_path: str = AGIPACK_BASENAME, output_filename: str = "Dockerfile"):
-        self.config = AGIPackConfig.load_yaml(config_path)
+    def __init__(self, config: AGIPackConfig, output_filename: str = "Dockerfile"):
+        """Initialize the AGIPack instance."""
+        self.config = config
         self.output_filename = output_filename
         self.template_env = Environment(loader=FileSystemLoader(searchpath=AGIPACK_TEMPLATE_DIR))
 

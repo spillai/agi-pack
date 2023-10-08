@@ -1,9 +1,8 @@
 images:
   base-cpu:
-    base: python:3.8.10-slim
     system:
       - wget
-    python: 3.8.10
+    python: "3.8"
     pip:
       - loguru
       - scikit-learn

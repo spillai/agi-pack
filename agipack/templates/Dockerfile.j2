@@ -16,8 +16,8 @@ ENV {{ key }}={{ value }} {% endfor %}
 
 {%- if system %}
 # Install system packages
-RUN apt-get update \
-    && apt-get install -y  --no-install-recommends \
+RUN apt-get -y update \
+    && apt-get -y install \
     curl git \
 {%- for package in system %}
     {{ package }} \
@@ -39,6 +39,7 @@ RUN curl -sLo ~/mambaforge.sh "https://github.com/conda-forge/miniforge/releases
   && chmod +x ~/mambaforge.sh \
   && ~/mambaforge.sh -b -p /opt/conda \
   && /opt/conda/bin/mamba init bash \
+  && /opt/conda/bin/mamba config --set pip_interop_enabled True \
   && /opt/conda/bin/mamba create -n ${PYENV} python=${PYTHON_VERSION} -y \
   && rm ~/mambaforge.sh
 

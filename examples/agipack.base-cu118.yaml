@@ -1,0 +1,18 @@
+images:
+  base-cpu:
+    system:
+      - wget
+    pip:
+      - pytorch==2.1.0
+      - torchvision
+      - torchaudio
+      - pytorch-cuda=11.8
+      - cudatoolkit=11.8
+      - -c pytorch -c nvidia
+    requirements:
+      - requirements/requirements.txt
+    run:
+      - python -c 'import cv2; print(cv2.__version__)'
+      - python -c 'import torch; print(torch.__version__)'
+    env:
+      MY_ENV_VAR: value
