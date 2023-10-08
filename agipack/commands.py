@@ -63,7 +63,7 @@ class ImageConfig:
     def additional_kwargs(self):
         """Additional kwargs to pass to the Jinja2 Dockerfile template."""
         python_alias = f"py{''.join(self.python.split('.')[:2])}"
-        return {"python_alias": python_alias, "prod": False}
+        return {"python_alias": python_alias, "is_prod": False, "is_base_image": self.is_base_image()}
 
     def dict(self):
         """Dictionary representation of the ImageConfig."""
@@ -72,6 +72,10 @@ class ImageConfig:
     def __repr__(self):
         """String representation of the ImageConfig."""
         return yaml.dump(self.dict(), sort_keys=False)
+
+    def is_base_image(self) -> bool:
+        """Check if the base target is root / does not have a parent."""
+        return ":" in self.base
 
 
 @dataclass
