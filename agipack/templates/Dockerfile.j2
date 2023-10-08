@@ -43,8 +43,8 @@ RUN curl -sLo ~/mambaforge.sh "https://github.com/conda-forge/miniforge/releases
   && rm ~/mambaforge.sh
 
 {% if pip -%}
-# Install pip packages, with cache mounting for faster builds
-# Note: Cache mounts allow us to re-use the cache for pip packages
+# Install pip packages, with cache mounting /opt/conda/pkgs for faster builds
+# Note: Cache mounts allow us to re-use the cache for conda packages
 # instead of having to re-download them every time we build.
 RUN --mount=type=cache,target=/opt/conda/pkgs/ \
     mamba install -yv \
@@ -59,6 +59,30 @@ RUN --mount=type=cache,target=/opt/conda/pkgs/ \
 {% else %}
     && echo "pip install complete"
 {%- endif %}
+{%- endif %}
+
+{% if requirements -%}
+# Install requirements, with cache mounting ~/.cache/pip for faster builds
+# Note: Cache mounts allow us to re-use the cache for pip packages
+# instead of having to re-download them every time we build.
+{%- for package in requirements %}
+COPY {{ package }} /tmp/reqs/{{ package }}
+{%- endfor %}
+
+RUN --mount=type=cache,target=~/.cache/pip \
+    pip install --upgrade pip \
+{%- for package in requirements %}
+    && pip install -r /tmp/reqs/{{ package }} \
+{%- endfor %}
+{%- if prod %}
+    && /opt/conda/bin/mamba clean -ya \
+    && rm -rf ~/.cache/pip \
+    && rm -rf /opt/conda/pkgs/* \
+    && rm -r /tmp/reqs \
+    && echo "pip cleanup complete"
+{% else %}
+{%- endif %}
+    && echo "pip install complete"
 {%- endif %}
 
 # Export conda environment on login

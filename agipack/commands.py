@@ -28,6 +28,9 @@ class ImageConfig(BaseModel):
     Defaults to the <target> name if not provided.
     """
 
+    name: str = Field(default="agi")
+    """Pretty-name of the project and environment in the image."""
+
     base: str = Field(default="python:3.8.10-slim")
     """Base docker image to use (FROM clause in the Dockerfile)."""
 
@@ -41,7 +44,10 @@ class ImageConfig(BaseModel):
     """Python version to use (via `miniconda`)."""
 
     pip: Optional[List[str]] = Field(default_factory=list)
-    """List of Python packages to install (via `pip`)."""
+    """List of Python packages to install (via `pip install`)."""
+
+    requirements: Optional[List[str]] = Field(default_factory=list)
+    """List of Python requirements files to install (via `pip install -r`)."""
 
     add: Optional[List[str]] = Field(default_factory=list)
     """List of files to copy into the image."""
@@ -103,7 +109,7 @@ class AGIPackConfig(BaseModel):
         # Pre-process the config to remove empty lists, etc.
         data = self.model_dump()
         for _, config in data["images"].items():
-            for key in ["env", "system", "pip", "add"]:
+            for key in ["env", "system", "pip", "requirements", "add"]:
                 if not len(config[key]):
                     del config[key]
         # Save the YAML file
