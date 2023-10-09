@@ -77,7 +77,7 @@ agi-pack --install-completion <bash|zsh|fish|powershell|pwsh>
         └── `docker build -f Dockerfile --target base-sklearn .`
     ```
 
-That's it! Use the generated `Dockerfile` to run `docker build` and build the image directly.
+That's it! Here's the generated [`Dockerfile`](examples/generated/Dockerfile-quickstart) -- use it to run `docker build` and build the image directly.
 
 ## Goals 🎯
 
