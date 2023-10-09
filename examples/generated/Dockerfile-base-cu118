@@ -3,19 +3,22 @@
 FROM debian:buster-slim AS base-gpu
 
 # Setup environment variables
-ENV PROJECT agi
-ENV PYENV agi-py38
+ENV AGIPACK_PROJECT agi
+ENV AGIPACK_PYENV agi-py38
+ENV AGIPACK_VERSION 0.1.4
+ENV AGIPACK_PATH /opt/agi-pack
+
 ENV PYTHON_VERSION 3.8
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 ENV PYTHONWARNINGS ignore
 
 # Setup conda paths
-ENV CONDA_PATH=/opt/conda/envs/${PYENV}
+ENV CONDA_PATH=/opt/conda/envs/${AGIPACK_PYENV}
 ENV CONDA_PREFIX=${CONDA_PATH}
 ENV CONDA_EXE=${CONDA_PATH}/bin/conda
 ENV PATH=${CONDA_PATH}/bin:/opt/conda/bin:$PATH
-ENV CONDA_DEFAULT_ENV ${PYENV}
+ENV CONDA_DEFAULT_ENV ${AGIPACK_PYENV}
 
 # Setup environment variables
 ENV MY_ENV_VAR=value 
@@ -35,7 +38,7 @@ RUN curl -sLo ~/mambaforge.sh "https://github.com/conda-forge/miniforge/releases
   && ~/mambaforge.sh -b -p /opt/conda \
   && /opt/conda/bin/mamba init bash \
   && /opt/conda/bin/mamba config --set pip_interop_enabled True \
-  && /opt/conda/bin/mamba create -n ${PYENV} python=${PYTHON_VERSION} -y \
+  && /opt/conda/bin/mamba create -n ${AGIPACK_PYENV} python=${PYTHON_VERSION} -y \
   && rm ~/mambaforge.sh
 
 # Install pip packages, with cache mounting /opt/conda/pkgs for faster builds
@@ -53,14 +56,14 @@ RUN --mount=type=cache,target=/opt/conda/pkgs/ \
     && echo "pip install complete"
 
 # Export conda environment on login
-RUN echo "export CONDA_PATH=/opt/conda/envs/${PYENV}" >> ~/.bashrc
-RUN echo "export PATH=/opt/conda/envs/${PYENV}/bin:$PATH" >> ~/.bashrc
-RUN echo "export CONDA_DEFAULT_ENV=${PYENV}" >> ~/.bashrc
-RUN echo "mamba activate ${PYENV}" > ~/.bashrc
-ENTRYPOINT ["/bin/bash", "-c"]
+RUN echo "export CONDA_PATH=/opt/conda/envs/${AGIPACK_PYENV}" >> ~/.bashrc
+RUN echo "export PATH=/opt/conda/envs/${AGIPACK_PYENV}/bin:$PATH" >> ~/.bashrc
+RUN echo "export CONDA_DEFAULT_ENV=${AGIPACK_PYENV}" >> ~/.bashrc
+RUN echo "mamba activate ${AGIPACK_PYENV}" > ~/.bashrc
+
 
 # Setup working directory
-WORKDIR /app/$PYENV
+WORKDIR /app/$AGIPACK_PYENV
 
 # Run commands
 RUN \
@@ -69,3 +72,4 @@ RUN \
     echo 'cudnn: ' && python -c 'import torch; print(torch.backends.cudnn.version())' \
     echo 'opencv:' && python -c 'import cv2; print(cv2.__version__)' \
     && echo "run commands complete"
+CMD [['bash']]

@@ -77,8 +77,17 @@ class ImageConfig:
     add: Optional[List[str]] = field(default_factory=list)
     """List of files to copy into the image."""
 
+    workdir: Optional[str] = field(default=None)
+    """Working directory for the image (defaults to /app/${AGIPACK_ENV} if not set)."""
+
     run: Optional[List[str]] = field(default_factory=list)
-    """List of commands to run in the image."""
+    """List of commands to run in the image under the workdir."""
+
+    entrypoint: Optional[List[str]] = field(default_factory=list)
+    """Entrypoint for the image."""
+
+    command: Optional[List[str]] = field(default_factory=lambda: ["bash"])
+    """Command to run in the image."""
 
     def additional_kwargs(self):
         """Additional kwargs to pass to the Jinja2 Dockerfile template."""
@@ -199,8 +208,11 @@ class AGIPackConfig:
         # Pre-process the config to remove empty lists, etc.
         data = asdict(self)
         for _, config in data["images"].items():
-            for key in ["env", "system", "pip", "requirements", "add", "run"]:
+            for key in ["env", "system", "pip", "requirements", "add", "run", "entrypoint", "command"]:
                 if not len(config[key]):
+                    del config[key]
+            for key in ["workdir"]:
+                if config.get(key) is None:
                     del config[key]
         # Save the YAML file
         with open(filename, "w") as f:

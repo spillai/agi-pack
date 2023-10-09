@@ -125,12 +125,17 @@ RUN echo "export CONDA_PATH=/opt/conda/envs/${AGIPACK_PYENV}" >> ~/.bashrc
 RUN echo "export PATH=/opt/conda/envs/${AGIPACK_PYENV}/bin:$PATH" >> ~/.bashrc
 RUN echo "export CONDA_DEFAULT_ENV=${AGIPACK_PYENV}" >> ~/.bashrc
 RUN echo "mamba activate ${AGIPACK_PYENV}" > ~/.bashrc
-ENTRYPOINT ["/bin/bash", "-c"]
 
 {%- endif %}
 
+
 # Setup working directory
+{%- if workdir %}
+WORKDIR {{ workdir }}
+{%- else %}
 WORKDIR /app/$AGIPACK_PYENV
+{%- endif %}
+
 
 {%- if run|length > 0 %}
 
@@ -141,4 +146,14 @@ RUN \
 {%- endfor %}
     && echo "run commands complete"
 
+{%- endif %}
+
+
+{%- if entrypoint|length > 0 %}
+ENTRYPOINT [{%- for cmd in entrypoint %}"{{ cmd }}"{% if not loop.last %}, {% endif %}{%- endfor %}]
+{%- endif %}
+
+
+{%- if command %}
+CMD [{{ command }}]
 {%- endif %}

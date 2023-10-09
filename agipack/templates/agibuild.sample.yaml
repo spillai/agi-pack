@@ -10,3 +10,4 @@ images:
       - ls -la
     env:
       MY_ENV_VAR: value
+    command: ["bash"]
