@@ -19,5 +19,5 @@ def test_parse_yaml(filename):
     assert config is not None
 
     basename = filename.stem.replace("agibuild.", "")
-    output_filename = EXAMPLES_DIR / "generated" / f"Dockerfile-{basename}"
-    AGIPack(config, output_filename=output_filename).render()
+    filename = EXAMPLES_DIR / "generated" / f"Dockerfile-{basename}"
+    AGIPack(config).render(filename=filename)

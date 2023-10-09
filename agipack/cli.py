@@ -45,7 +45,7 @@ def generate(
     config_filename: str = typer.Option(
         AGIPACK_BASENAME, "--config", "-c", help="Path to the YAML configuration file."
     ),
-    output_filename: str = typer.Option(
+    filename: str = typer.Option(
         "Dockerfile", "--output-filename", "-o", help="Output filename for the generated Dockerfile."
     ),
     python: str = typer.Option(
@@ -54,6 +54,7 @@ def generate(
     base_image: str = typer.Option(
         None, "--base", "-b", help="Base image to use for the root/base target.", show_default=False
     ),
+    prod: bool = typer.Option(False, "--prod", "-p", help="Generate a production Dockerfile.", show_default=False),
 ):
     """Generate the Dockerfile with optional overrides.
 
@@ -72,8 +73,8 @@ def generate(
         config.images[root].base = base_image
 
     # Render the Dockerfiles with the new filename and configuration
-    builder = AGIPack(config, output_filename=output_filename)
-    dockerfiles = builder.render()
+    builder = AGIPack(config)
+    dockerfiles = builder.render(filename=filename, env="prod" if prod else "dev")
     for target, filename in dockerfiles.items():
         tree = Tree(f"📦 [bold white]{target}[/bold white]")
         tree.add(

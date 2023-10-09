@@ -1,0 +1,8 @@
+# agi-pack builder example with agi-pack
+images:
+  agipack-builder:
+    base: debian:buster-slim
+    python: 3.8
+    run:
+      - pip install agi-pack
+    command: ["agi-pack", "generate", "-f"]

@@ -54,8 +54,9 @@ def test_builder_cls(test_data_dir):
     # directory is specified
     config = AGIPackConfig.load_yaml(test_data_dir / "agibuild-minimal.yaml")
     with tempfile.TemporaryDirectory() as tmp_dir:
-        builder = AGIPack(config, output_filename=str(Path(tmp_dir) / "Dockerfile"))
-        dockerfiles = builder.render()
+        builder = AGIPack(config)
+        filename = str(Path(tmp_dir) / "Dockerfile")
+        dockerfiles = builder.render(filename=filename)
         assert "base-cpu" in dockerfiles
         assert Path(dockerfiles["base-cpu"]).exists()
         assert Path(dockerfiles["base-cpu"]).parent == Path(tmp_dir)
@@ -66,8 +67,9 @@ def test_builder_cls_with_deps(test_data_dir):
     # directory is specified
     config = AGIPackConfig.load_yaml(test_data_dir / "agibuild-with-deps.yaml")
     with tempfile.TemporaryDirectory() as tmp_dir:
-        builder = AGIPack(config, output_filename=str(Path(tmp_dir) / "Dockerfile"))
-        dockerfiles = builder.render()
+        builder = AGIPack(config)
+        filename = str(Path(tmp_dir) / "Dockerfile")
+        dockerfiles = builder.render(filename=filename)
         assert "base-cpu" in dockerfiles
         assert "dev-cpu" in dockerfiles
         assert Path(dockerfiles["base-cpu"]).exists()

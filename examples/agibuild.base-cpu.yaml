@@ -1,3 +1,4 @@
+# agi-pack base image with pytorch 2.1 cpu
 images:
   base-cpu:
     system:

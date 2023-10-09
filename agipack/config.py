@@ -166,7 +166,7 @@ class AGIPackConfig:
 
     def is_prod(self) -> bool:
         """Check if the configuration is for production."""
-        return False
+        return self.prod
 
     @field_validator("images")
     def validate_python_dependencies_for_nonbase_images(cls, images):

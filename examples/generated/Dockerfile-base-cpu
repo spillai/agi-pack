@@ -27,7 +27,7 @@ ENV MY_ENV_VAR=value
 # Install system packages
 RUN apt-get -y update \
     && apt-get -y install \
-    curl git \
+    curl bzip2 \
     wget \
     && apt-get -y autoclean \
     && apt-get -y autoremove \
@@ -38,6 +38,7 @@ RUN curl -sLo ~/mambaforge.sh "https://github.com/conda-forge/miniforge/releases
   && chmod +x ~/mambaforge.sh \
   && ~/mambaforge.sh -b -p /opt/conda \
   && /opt/conda/bin/mamba init bash \
+  && /opt/conda/bin/mamba config --add channels conda-forge \
   && /opt/conda/bin/mamba config --set pip_interop_enabled True \
   && /opt/conda/bin/mamba create -n ${AGIPACK_PYENV} python=${PYTHON_VERSION} -y \
   && rm ~/mambaforge.sh
@@ -50,7 +51,11 @@ RUN --mount=type=cache,target=/opt/conda/pkgs/ \
     pytorch>=2.1 \
     torchvision \
     cpuonly -c pytorch \
-    && echo "pip install complete"
+    && /opt/conda/bin/mamba clean -ya \
+    && rm -rf ~/.cache/pip \
+    && rm -rf /opt/conda/pkgs/* \
+    && echo "pip install/cleanup complete"
+
 
 # Export conda environment on login
 RUN echo "export CONDA_PATH=/opt/conda/envs/${AGIPACK_PYENV}" >> ~/.bashrc
