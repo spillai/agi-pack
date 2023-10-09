@@ -37,11 +37,14 @@ class AGIPack:
 
     Usage Example:
         ```python
-        # Create an AGIPack instance
-        builder = AGIPack(config_path="agibuild.yaml")
+        from agipack import AGIPack, AGIPackConfig
 
-        # Generate Dockerfiles and build images
-        builder.generate_all()
+        # Create an AGIPack instance
+        config = AGIPackConfig.from_yaml("agibuild.yaml")
+        builder = AGIPack(config)
+
+        # Render / generate the Dockerfile
+        builder.render()
         ```
 
     Args:
