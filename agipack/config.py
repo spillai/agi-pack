@@ -11,6 +11,24 @@ logger = logging.getLogger(__name__)
 
 
 @dataclass
+class Node:
+    """Node in the dependency graph."""
+
+    name: str
+    """Name of the node."""
+
+    root: bool = field(default=False)
+    """Whether the node is the root node."""
+
+    children: List[str] = field(default_factory=list)
+    """List of children for the node."""
+
+    def is_leaf(self) -> bool:
+        """Check if the node is a leaf node."""
+        return not len(self.children)
+
+
+@dataclass
 class ImageConfig:
     """AGIPack configuration for a docker target specified in `agibuild.yaml`
 
@@ -65,7 +83,7 @@ class ImageConfig:
     def additional_kwargs(self):
         """Additional kwargs to pass to the Jinja2 Dockerfile template."""
         python_alias = f"py{''.join(self.python.split('.')[:2])}"
-        return {"python_alias": python_alias, "is_prod": False, "is_base_image": self.is_base_image()}
+        return {"python_alias": python_alias}
 
     def dict(self):
         """Dictionary representation of the ImageConfig."""
@@ -100,6 +118,29 @@ class AGIPackConfig:
 
     images: Dict[str, ImageConfig]
     """Dictionary of targets to build and their configurations."""
+
+    def __post_init__(self):
+        """Post-initialization hook."""
+        self._target_tree: Dict[str, Node] = {}
+        self._build_target_tree()
+
+    def root(self) -> str:
+        """Return the root target."""
+        targets = [target for target, node in self._target_tree.items() if node.root]
+        assert len(targets) == 1
+        return targets[0]
+
+    def children(self, target: str) -> List[str]:
+        """Return the list of children for the given target."""
+        return self._target_tree[target].children
+
+    def is_root(self, target: str) -> bool:
+        """Check if the given target is a base image."""
+        return self._target_tree[target].root
+
+    def is_prod(self) -> bool:
+        """Check if the configuration is for production."""
+        return False
 
     @field_validator("images")
     def validate_python_dependencies_for_nonbase_images(cls, images):
@@ -156,3 +197,19 @@ class AGIPackConfig:
         # Save the YAML file
         with open(filename, "w") as f:
             yaml.safe_dump(data, f, sort_keys=False)
+
+    def _build_target_tree(self) -> None:
+        """Build the target dependency tree."""
+        for idx, (target, config) in enumerate(self.images.items()):
+            logger.debug(f"{target} -> {config.base}")
+
+            # Check if the first image is the base
+            if idx == 0:
+                if not config.is_base_image():
+                    raise ValueError(f"First image [{target}] must be the base image")
+                self._target_tree[target] = Node(name=target, root=True)
+            else:
+                assert config.base in self._target_tree
+                self._target_tree[target] = Node(name=target)
+                self._target_tree[config.base].children.append(target)
+        logger.debug(f"Target dependencies: {self._target_tree}")

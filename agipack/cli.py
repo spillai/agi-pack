@@ -52,7 +52,7 @@ def generate(
         None, "--python", "-p", help="Python version to use for the base image.", show_default=False
     ),
     base_image: str = typer.Option(
-        None, "--base", "-b", help="Base image to use for the base image.", show_default=False
+        None, "--base", "-b", help="Base image to use for the root/base target.", show_default=False
     ),
 ):
     """Generate the Dockerfile with optional overrides.
@@ -61,14 +61,19 @@ def generate(
         agi-pack generate -c agibuild.yaml
         agi-pack generate -c agibuild.yaml -o docker/Dockerfile
     """
+    # Load the YAML configuration
     config = AGIPackConfig.load_yaml(config_filename)
-    for _, image_config in config.images.items():
-        if python:
-            image_config.python = python
-        if base_image:
-            image_config.base = base_image
+
+    # Override the python version and base image for the root image
+    root = config.root()
+    if python:
+        config.images[root].python = python
+    if base_image:
+        config.images[root].base = base_image
+
+    # Render the Dockerfiles with the new filename and configuration
     builder = AGIPack(config, output_filename=output_filename)
-    dockerfiles = builder.build_all()
+    dockerfiles = builder.render()
     for target, filename in dockerfiles.items():
         tree = Tree(f"📦 [bold white]{target}[/bold white]")
         tree.add(
