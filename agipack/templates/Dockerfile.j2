@@ -40,8 +40,6 @@ ENV {{ key }}={{ value }} {% endfor %}
 {%- endif %}
 
 
-{%- if system %}
-
 # Install system packages
 RUN apt-get -y update \
     && apt-get -y install \
@@ -52,8 +50,6 @@ RUN apt-get -y update \
     && apt-get -y autoclean \
     && apt-get -y autoremove \
     && rm -rf /var/lib/apt/lists/*
-
-{%- endif %}
 
 
 {%- if is_base_image %}
@@ -154,6 +150,6 @@ ENTRYPOINT [{%- for cmd in entrypoint %}"{{ cmd }}"{% if not loop.last %}, {% en
 {%- endif %}
 
 
-{%- if command %}
-CMD [{{ command }}]
+{%- if command|length > 0 %}
+CMD [{%- for cmd in command %}"{{ cmd }}"{% if not loop.last %}, {% endif %}{%- endfor %}]
 {%- endif %}

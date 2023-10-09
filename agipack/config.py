@@ -86,7 +86,7 @@ class ImageConfig:
     entrypoint: Optional[List[str]] = field(default_factory=list)
     """Entrypoint for the image."""
 
-    command: Optional[List[str]] = field(default_factory=lambda: ["bash"])
+    command: Optional[Union[str, List[str]]] = field(default_factory=lambda: ["bash"])
     """Command to run in the image."""
 
     def additional_kwargs(self):
@@ -113,6 +113,15 @@ class ImageConfig:
         if not python.startswith("3."):
             raise ValueError(f"Python version must be >= 3.6 (found {python})")
         return python
+
+    @field_validator("command", mode="before")
+    def validate_command_version(cls, cmd):
+        """Validate the command."""
+        if isinstance(cmd, str):
+            cmd = cmd.split(" ")
+        elif isinstance(cmd, list):
+            pass
+        return cmd
 
 
 @dataclass

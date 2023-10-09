@@ -7,6 +7,7 @@ def test_configs(test_data_dir):
     configs = [
         test_data_dir / "agibuild-minimal.yaml",
         test_data_dir / "agibuild-with-deps.yaml",
+        test_data_dir / "agibuild-no-system.yaml",
     ]
     for filename in configs:
         config = AGIPackConfig.load_yaml(filename)

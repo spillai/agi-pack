@@ -23,6 +23,7 @@ ENV CONDA_DEFAULT_ENV ${AGIPACK_PYENV}
 # Setup environment variables
 ENV MY_ENV_VAR=value 
 
+
 # Install system packages
 RUN apt-get -y update \
     && apt-get -y install \
@@ -72,4 +73,4 @@ RUN \
     echo 'cudnn: ' && python -c 'import torch; print(torch.backends.cudnn.version())' \
     echo 'opencv:' && python -c 'import cv2; print(cv2.__version__)' \
     && echo "run commands complete"
-CMD [['bash']]
+CMD ["bash"]

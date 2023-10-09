@@ -1,0 +1,7 @@
+images:
+  base-cpu:
+    python: 3.8.10
+    pip:
+      - scikit-learn
+    run:
+      - echo "Hello, world!"
