@@ -25,10 +25,11 @@ repos:
     - id: debug-statements
     - id: detect-private-key
     - id: end-of-file-fixer
-      exclude: ^tests/
+      exclude: ^tests/|^examples/generated
     - id: pretty-format-json
       exclude: ^tests/|^docs|^examples
     - id: trailing-whitespace
+      exclude: ^examples/generated
     - id: check-added-large-files
       args: ['--maxkb=100']
       exclude: ^tests

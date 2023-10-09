@@ -97,6 +97,14 @@ class ImageConfig:
         """Check if the base target is root / does not have a parent."""
         return ":" in self.base
 
+    @field_validator("python", mode="before")
+    def validate_python_version(cls, python):
+        """Validate the python version."""
+        python = str(python)
+        if not python.startswith("3."):
+            raise ValueError(f"Python version must be >= 3.6 (found {python})")
+        return python
+
 
 @dataclass
 class AGIPackConfig:
