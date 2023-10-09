@@ -62,9 +62,10 @@ dist: clean ## builds source and wheel package
 	ls -lh dist
 
 create-pypi-release: dist  ## package, git tag/release and upload a release to PyPI
+	twine --version
 	@echo -n "Are you sure you want to create a PyPI release? [y/N] " && read ans && [ $${ans:-N} = y ]
 	twine upload dist/*.whl
-	echo "Successfully created release for `agi-pack`."
+	echo "Successfully created release for agi-pack."
 
 create-tag:
 	git tag -a ${AGIPACK_VERSION} -m "Release ${AGIPACK_VERSION}"

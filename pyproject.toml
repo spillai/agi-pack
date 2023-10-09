@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "agi-pack"
-version = "0.0.0"
+version = "0.1.0"
 description = "Dockerfile generator for AGI -- nothing more, nothing less."
 license = {file = "LICENSE"}
 readme = "README.md"
@@ -36,7 +36,7 @@ dependencies = [
 dev = [
     "pre-commit",
     "pytest",
-    "build"
+    "build",
 ]
 
 [project.urls]

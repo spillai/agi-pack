@@ -95,12 +95,54 @@ agi-pack --install-completion <bash|zsh|fish|powershell|pwsh>
     You should see the following output:
 
     ```bash
+    $ agi-pack generate -c agibuild.yaml
     📦 base-sklearn
     └── 🎉 Successfully generated Dockerfile (target=base-sklearn, filename=Dockerfile).
         └── `docker build -f Dockerfile --target base-sklearn .`
     ```
 
 That's it! You can now build the generated Dockerfile using `docker build` to build the image directly.
+
+## More Complex Example 📚
+
+Now imagine you want to build a more complex image that has multiple stages, and you want to build a `base` image that has all the basic dependencies, and a `dev` image that has additional build-time dependencies.
+
+    ```yaml
+    images:
+      base-cpu:
+        name: agi
+        base: debian:buster-slim
+        system:
+          - wget
+        python: 3.8.10
+        pip:
+          - scikit-learn
+        run:
+          - echo "Hello, world!"
+
+      dev-cpu:
+        base: base-cpu
+        system:
+        - build-essential
+    ```
+
+Once you've defined this `agibuild.yaml`, running `agi-pack generate` will generate the following output:
+
+    You should see the following output:
+    ```bash
+    $ agi-pack generate -c agibuild.yaml
+    📦 base-cpu
+    └── 🎉 Successfully generated Dockerfile (target=base-cpu, filename=Dockerfile).
+        └── `docker build -f Dockerfile --target base-cpu .`
+    📦 dev-cpu
+    └── 🎉 Successfully generated Dockerfile (target=dev-cpu, filename=Dockerfile).
+        └── `docker build -f Dockerfile --target dev-cpu .`
+    ```
+
+As you can see, `agi-pack` will generate a **single** Dockerfile for each of the images defined in the YAML file. You can then build the individual images from the same Dockerfile using docker targets: `docker build -f Dockerfile --target <target> .` where `<target>` is the name of the image target you want to build.
+
+Here's the corresponding [`Dockerfile`](./examples/generated/Dockerfile-multistage-example) that was generated.
+
 
 ## Inspiration and Attribution 🌟
 
@@ -113,15 +155,14 @@ Prompt: I'm building a Dockerfile generator and builder to simplify machine lear
     # Sample YAML file
     images:
     base-gpu:
-        image: autonomi/agi:latest-base-gpu
-        base: "nvidia/cuda:11.8.0-base-ubuntu22.04"
+        base: nvidia/cuda:11.8.0-base-ubuntu22.04
         system:
-        - "gnupg2"
-        - "build-essential"
-        - "git"
-        python: "3.8.10"
+        - gnupg2
+        - build-essential
+        - git
+        python: 3.8.10
         pip:
-        - "torch==2.0.1"
+        - torch==2.0.1
 
     I'd like for this yaml file to generate a Dockerfile via `agi-pack generate -c <name>.yaml`.
 
