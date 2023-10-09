@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "agi-pack"
-version = "0.1.1"
+version = "0.1.2"
 description = "Dockerfile generator for AGI -- nothing more, nothing less."
 license = {file = "LICENSE"}
 readme = "README.md"
@@ -29,6 +29,7 @@ classifiers = [
 dependencies = [
     "jinja2",
     "pydantic",
+    "pyyaml",
     "typer[all]"
 ]
 
