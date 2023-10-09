@@ -7,6 +7,7 @@ from jinja2 import Environment, FileSystemLoader
 
 from agipack.config import AGIPackConfig, ImageConfig
 from agipack.constants import AGIPACK_DOCKERFILE_TEMPLATE, AGIPACK_TEMPLATE_DIR
+from agipack.version import __version__
 
 logging_level = os.environ.get("AGIPACK_LOGGING_LEVEL", "WARNING")
 logging.basicConfig(level=logging.getLevelName(logging_level))
@@ -78,6 +79,7 @@ class AGIPack:
         image_dict["target"] = target
         image_dict["is_prod"] = self.config.is_prod()
         image_dict["is_base_image"] = self.config.is_root(target)
+        image_dict["agipack_version"] = __version__
         content = template.render(image_dict)
 
         # Write the Dockerfile to the specified output filename

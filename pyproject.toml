@@ -4,7 +4,6 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "agi-pack"
-version = "0.1.3"
 description = "Dockerfile generator for AGI -- nothing more, nothing less."
 license = {file = "LICENSE"}
 readme = "README.md"
@@ -26,6 +25,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
 
 ]
+dynamic = ["version"]
 dependencies = [
     "jinja2",
     "pydantic",
@@ -44,6 +44,9 @@ dev = [
 "Documentation" = "https://spillai.github.io/agi-pack/"
 "Source Code" = "https://github.com/spillai/agi-pack"
 "Homepage" = "https://spillai.github.io/agi-pack/"
+
+[tool.setuptools.dynamic]
+version = {attr = "agipack.version.__version__"}
 
 [project.scripts]
 agi-pack = "agipack.cli:app"
