@@ -60,6 +60,7 @@ def test_builder_cls(test_data_dir):
         assert "base-cpu" in dockerfiles
         assert Path(dockerfiles["base-cpu"]).exists()
         assert Path(dockerfiles["base-cpu"]).parent == Path(tmp_dir)
+        builder.lint(filename=filename)
 
 
 def test_builder_cls_with_deps(test_data_dir):
@@ -74,3 +75,4 @@ def test_builder_cls_with_deps(test_data_dir):
         assert "dev-cpu" in dockerfiles
         assert Path(dockerfiles["base-cpu"]).exists()
         assert Path(dockerfiles["base-cpu"]).parent == Path(tmp_dir)
+        builder.lint(filename=filename)

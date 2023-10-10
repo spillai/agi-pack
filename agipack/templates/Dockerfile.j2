@@ -42,7 +42,7 @@ ENV {{ key }}={{ value }} {% endfor %}
 
 # Install system packages
 RUN apt-get -y update \
-    && apt-get -y install \
+    && apt-get -y --no-install-recommends install \
     curl bzip2 \
 {%- for package in system %}
     {{ package }} \
@@ -77,14 +77,7 @@ RUN --mount=type=cache,target=/opt/conda/pkgs/ \
 {%- for package in pip %}
     {{ package }} \
 {%- endfor %}
-{%- if is_prod %}
-    && /opt/conda/bin/mamba clean -ya \
-    && rm -rf ~/.cache/pip \
-    && rm -rf /opt/conda/pkgs/* \
-    && echo "pip install/cleanup complete"
-{% else %}
     && echo "pip install complete"
-{%- endif %}
 
 {%- endif %}
 
@@ -102,14 +95,6 @@ RUN --mount=type=cache,target=~/.cache/pip \
 {%- for package in requirements %}
     && pip install -r /tmp/reqs/{{ package }} \
 {%- endfor %}
-{%- if is_prod %}
-    && /opt/conda/bin/mamba clean -ya \
-    && rm -rf ~/.cache/pip \
-    && rm -rf /opt/conda/pkgs/* \
-    && rm -r /tmp/reqs \
-    && echo "pip cleanup complete"
-{% else %}
-{%- endif %}
     && echo "pip install complete"
 
 {%- endif %}
@@ -122,6 +107,14 @@ RUN echo "export CONDA_PATH=/opt/conda/envs/${AGIPACK_PYENV}" >> ~/.bashrc
 RUN echo "export PATH=/opt/conda/envs/${AGIPACK_PYENV}/bin:$PATH" >> ~/.bashrc
 RUN echo "export CONDA_DEFAULT_ENV=${AGIPACK_PYENV}" >> ~/.bashrc
 RUN echo "mamba activate ${AGIPACK_PYENV}" > ~/.bashrc
+
+{%- if is_prod %}
+RUN /opt/conda/bin/mamba clean -ya \
+    && rm -rf ~/.cache/pip \
+    && rm -rf /opt/conda/pkgs/* \
+    && rm -rf /tmp/reqs \
+    && echo "pip cleanup complete"
+{%- endif %}
 
 {%- endif %}
 

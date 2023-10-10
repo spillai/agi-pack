@@ -26,7 +26,7 @@ ENV MY_ENV_VAR=value
 
 # Install system packages
 RUN apt-get -y update \
-    && apt-get -y install \
+    && apt-get -y --no-install-recommends install \
     curl bzip2 \
     wget \
     && apt-get -y autoclean \
@@ -55,17 +55,18 @@ RUN --mount=type=cache,target=/opt/conda/pkgs/ \
     cudatoolkit=11.8 \
     cudnn=8.2.1 \
     -c pytorch -c nvidia \
-    && /opt/conda/bin/mamba clean -ya \
-    && rm -rf ~/.cache/pip \
-    && rm -rf /opt/conda/pkgs/* \
-    && echo "pip install/cleanup complete"
-
+    && echo "pip install complete"
 
 # Export conda environment on login
 RUN echo "export CONDA_PATH=/opt/conda/envs/${AGIPACK_PYENV}" >> ~/.bashrc
 RUN echo "export PATH=/opt/conda/envs/${AGIPACK_PYENV}/bin:$PATH" >> ~/.bashrc
 RUN echo "export CONDA_DEFAULT_ENV=${AGIPACK_PYENV}" >> ~/.bashrc
 RUN echo "mamba activate ${AGIPACK_PYENV}" > ~/.bashrc
+RUN /opt/conda/bin/mamba clean -ya \
+    && rm -rf ~/.cache/pip \
+    && rm -rf /opt/conda/pkgs/* \
+    && rm -rf /tmp/reqs \
+    && echo "pip cleanup complete"
 
 
 # Setup working directory

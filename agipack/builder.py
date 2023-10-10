@@ -1,17 +1,19 @@
 import logging
 import os
+import subprocess
 from dataclasses import field
 from pathlib import Path
-from typing import Dict, Union
+from typing import Dict, List, Union
 
 from jinja2 import Environment, FileSystemLoader
 from pydantic.dataclasses import dataclass
+from rich import print
 
 from agipack.config import AGIPackConfig, ImageConfig
 from agipack.constants import AGIPACK_DOCKERFILE_TEMPLATE, AGIPACK_ENV, AGIPACK_TEMPLATE_DIR
 from agipack.version import __version__
 
-logging_level = os.environ.get("AGIPACK_LOGGING_LEVEL", "WARNING")
+logging_level = os.environ.get("AGIPACK_LOGGING_LEVEL", "DEBUG")
 logging.basicConfig(level=logging.getLevelName(logging_level))
 logger = logging.getLogger(__name__)
 
@@ -147,3 +149,57 @@ class AGIPack:
                 pending.update(children)
 
         return dockerfiles
+
+    def build(self, filename: str, target: str, tags: List[str] = None) -> None:
+        """Builds a Docker image using the generated Dockerfile.
+
+        Args:
+            filename (str): Path to the generated Dockerfile.
+            target (str): Target image name.
+            tag (List[str[]): Tag for the Docker image.
+        """
+        logger.info(f"🚀 Building Docker image for target [{target}]")
+        image_config = self.config.images[target]
+        if tags is not None:
+            image_tags = [f"{image_config.name}:{tag}" for tag in tags]
+        else:
+            image_tags = [f"{image_config.name}:{target}"]
+        logger.debug(f"Image tags: {image_tags}")
+
+        cmd = ["docker", "build", "-f", filename, "--target", target]
+        for tag in image_tags:
+            cmd.extend(["-t", tag])
+        cmd.append(".")
+
+        logger.debug(f"Running command: {cmd}")
+        process = subprocess.Popen(
+            cmd,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            universal_newlines=True,
+        )
+        for line in iter(process.stdout.readline, ""):
+            print(line, end="")
+        process.wait()
+
+    def lint(self, filename: str) -> bool:
+        """Lint the generated Dockerfile using hadolint.
+
+        Args:
+            filename (str): Path to the generated Dockerfile.
+        """
+        cmd = "docker pull hadolint/hadolint && "
+        cmd += f"docker run --pull=always --rm -i hadolint/hadolint < {filename}"
+        logger.info("Linting with hadolint")
+        process = subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            universal_newlines=True,
+            shell=True,
+        )
+        process.wait()
+        for line in iter(process.stdout.readline, ""):
+            print(line, end="")
+        return process.returncode == 0
