@@ -5,7 +5,7 @@ FROM debian:buster-slim AS base-cpu
 # Setup environment variables
 ENV AGIPACK_PROJECT agi
 ENV AGIPACK_PYENV agi-py38
-ENV AGIPACK_VERSION 0.1.5
+ENV AGIPACK_VERSION 0.1.6
 ENV AGIPACK_PATH /opt/agi-pack
 
 ENV PYTHON_VERSION 3.8
@@ -54,10 +54,10 @@ RUN --mount=type=cache,target=/opt/conda/pkgs/ \
     && echo "pip install complete"
 
 # Export conda environment on login
-RUN echo "export CONDA_PATH=/opt/conda/envs/${AGIPACK_PYENV}" >> ~/.bashrc
-RUN echo "export PATH=/opt/conda/envs/${AGIPACK_PYENV}/bin:$PATH" >> ~/.bashrc
-RUN echo "export CONDA_DEFAULT_ENV=${AGIPACK_PYENV}" >> ~/.bashrc
-RUN echo "mamba activate ${AGIPACK_PYENV}" > ~/.bashrc
+RUN echo "export CONDA_PATH=/opt/conda/envs/${AGIPACK_PYENV}" >> ~/.bashrc \
+    && echo "export PATH=/opt/conda/envs/${AGIPACK_PYENV}/bin:$PATH" >> ~/.bashrc \
+    && echo "export CONDA_DEFAULT_ENV=${AGIPACK_PYENV}" >> ~/.bashrc \
+    && echo "mamba activate ${AGIPACK_PYENV}" > ~/.bashrc
 RUN /opt/conda/bin/mamba clean -ya \
     && rm -rf ~/.cache/pip \
     && rm -rf /opt/conda/pkgs/* \

@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 @dataclass
-class Node:
+class _ImageNode:
     """Node in the dependency graph."""
 
     name: str
@@ -54,7 +54,9 @@ class ImageConfig:
     """
 
     name: str = field(default="agi")
-    """Pretty-name of the project and environment in the image."""
+    """Pretty-name of the project in the image and
+    reflected in the `AGIPACK_ENV` environment variable in the image.
+    """
 
     base: str = field(default="debian:buster-slim")
     """Base docker image / target to use (FROM clause in the Dockerfile)."""
@@ -147,7 +149,7 @@ class AGIPackConfig:
 
     def __post_init__(self):
         """Post-initialization hook."""
-        self._target_tree: Dict[str, Node] = {}
+        self._target_tree: Dict[str, _ImageNode] = {}
         self._build_target_tree()
 
     def root(self) -> str:
@@ -236,9 +238,9 @@ class AGIPackConfig:
             if idx == 0:
                 if not config.is_base_image():
                     raise ValueError(f"First image [{target}] must be the base image")
-                self._target_tree[target] = Node(name=target, root=True)
+                self._target_tree[target] = _ImageNode(name=target, root=True)
             else:
                 assert config.base in self._target_tree
-                self._target_tree[target] = Node(name=target)
+                self._target_tree[target] = _ImageNode(name=target)
                 self._target_tree[config.base].children.append(target)
         logger.debug(f"Target dependencies: {self._target_tree}")

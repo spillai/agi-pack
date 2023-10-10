@@ -103,10 +103,10 @@ RUN --mount=type=cache,target=~/.cache/pip \
 {%- if is_base_image %}
 
 # Export conda environment on login
-RUN echo "export CONDA_PATH=/opt/conda/envs/${AGIPACK_PYENV}" >> ~/.bashrc
-RUN echo "export PATH=/opt/conda/envs/${AGIPACK_PYENV}/bin:$PATH" >> ~/.bashrc
-RUN echo "export CONDA_DEFAULT_ENV=${AGIPACK_PYENV}" >> ~/.bashrc
-RUN echo "mamba activate ${AGIPACK_PYENV}" > ~/.bashrc
+RUN echo "export CONDA_PATH=/opt/conda/envs/${AGIPACK_PYENV}" >> ~/.bashrc \
+    && echo "export PATH=/opt/conda/envs/${AGIPACK_PYENV}/bin:$PATH" >> ~/.bashrc \
+    && echo "export CONDA_DEFAULT_ENV=${AGIPACK_PYENV}" >> ~/.bashrc \
+    && echo "mamba activate ${AGIPACK_PYENV}" > ~/.bashrc
 
 {%- if is_prod %}
 RUN /opt/conda/bin/mamba clean -ya \
@@ -124,6 +124,16 @@ RUN /opt/conda/bin/mamba clean -ya \
 WORKDIR {{ workdir }}
 {%- else %}
 WORKDIR /app/$AGIPACK_PYENV
+{%- endif %}
+
+
+{%- if add|length > 0 %}
+
+# Add project files
+{%- for item in add %}
+ADD {{ item }} {{ item }}
+{%- endfor %}
+
 {%- endif %}
 
 
