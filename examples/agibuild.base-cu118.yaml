@@ -1,6 +1,7 @@
 # agi-pack base image with cuda 11.8 and pytorch 2.1
 images:
   base-gpu:
+    base: nvidia/cuda:11.8.0-base-ubuntu22.04
     system:
       - wget
     python: 3.8
