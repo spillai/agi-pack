@@ -41,6 +41,8 @@ class ImageConfig:
             system:
                 - <package>
             python: <version>
+            conda:
+                - <package>
             pip:
                 - <package>
             add:
@@ -69,6 +71,9 @@ class ImageConfig:
 
     python: Optional[str] = field(default="3.8.10")
     """Python version to use (via `miniconda`)."""
+
+    conda: Optional[List[str]] = field(default_factory=list)
+    """List of Python packages to install (via `conda/mamba install`)."""
 
     pip: Optional[List[str]] = field(default_factory=list)
     """List of Python packages to install (via `pip install`)."""
@@ -219,7 +224,7 @@ class AGIPackConfig:
         # Pre-process the config to remove empty lists, etc.
         data = asdict(self)
         for _, config in data["images"].items():
-            for key in ["env", "system", "pip", "requirements", "add", "run", "entrypoint", "command"]:
+            for key in ["env", "system", "conda", "pip", "requirements", "add", "run", "entrypoint", "command"]:
                 if not len(config[key]):
                     del config[key]
             for key in ["workdir"]:

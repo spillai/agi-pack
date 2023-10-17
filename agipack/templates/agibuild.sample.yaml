@@ -3,6 +3,9 @@ images:
     system:
       - wget
     python: "3.8"
+    conda:
+      - numpy
+      - scipy
     pip:
       - loguru
       - scikit-learn

@@ -161,7 +161,10 @@ class AGIPack:
         logger.info(f"🚀 Building Docker image for target [{target}]")
         image_config = self.config.images[target]
         if tags is not None:
-            image_tags = [f"{image_config.name}:{tag}" for tag in tags]
+            if isinstance(tags, str):
+                tags = [tags]
+            assert isinstance(tags, list), "tags must be a list of strings"
+            image_tags = list(tags)
         else:
             image_tags = [f"{image_config.name}:{target}"]
         logger.debug(f"Image tags: {image_tags}")
