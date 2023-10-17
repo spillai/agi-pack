@@ -57,6 +57,9 @@ lint: ## Format source code automatically
 test: ## Basic tests
 	pytest -sv tests
 
+test-all: ## Basic tests + docker builds
+	pytest -sv tests -sv -m 'not (skip)'
+
 dist: clean ## builds source and wheel package
 	python -m build --sdist --wheel
 	ls -lh dist

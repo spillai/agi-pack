@@ -8,6 +8,7 @@ images:
       - scikit-learn
     run:
       - echo "Hello, world!"
+      - echo "Hello, world 2!"
 
   dev-cpu:
     base: base-cpu
