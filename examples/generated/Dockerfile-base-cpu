@@ -5,7 +5,7 @@ FROM debian:buster-slim AS base-cpu
 # Setup environment variables
 ENV AGIPACK_PROJECT agi
 ENV AGIPACK_PYENV agi-py38
-ENV AGIPACK_VERSION 0.1.6
+ENV AGIPACK_VERSION 0.1.8
 ENV AGIPACK_PATH /opt/agi-pack
 
 ENV PYTHON_VERSION 3.8
@@ -27,7 +27,7 @@ ENV MY_ENV_VAR=value
 # Install system packages
 RUN apt-get -y update \
     && apt-get -y --no-install-recommends install \
-    curl bzip2 \
+    curl bzip2 git ca-certificates \
     wget \
     && apt-get -y autoclean \
     && apt-get -y autoremove \
@@ -39,19 +39,30 @@ RUN curl -sLo ~/mambaforge.sh "https://github.com/conda-forge/miniforge/releases
   && ~/mambaforge.sh -b -p /opt/conda \
   && /opt/conda/bin/mamba init bash \
   && /opt/conda/bin/mamba config --add channels conda-forge \
-  && /opt/conda/bin/mamba config --set pip_interop_enabled True \
   && /opt/conda/bin/mamba create -n ${AGIPACK_PYENV} python=${PYTHON_VERSION} -y \
   && rm ~/mambaforge.sh
 
-# Install pip packages, with cache mounting /opt/conda/pkgs for faster builds
-# Note: Cache mounts allow us to re-use the cache for conda packages
+# Upgrade pip
+RUN pip install --upgrade pip
+
+# Install pip packages, with cache mounting ~/.cache/pip for faster builds
+# Note: Cache mounts allow us to re-use the cache for pip packages
 # instead of having to re-download them every time we build.
-RUN --mount=type=cache,target=/opt/conda/pkgs/ \
-    mamba install -yv \
+RUN --mount=type=cache,target=~/.cache/pip \
+    pip install \
     pytorch>=2.1 \
     torchvision \
     cpuonly -c pytorch \
     && echo "pip install complete"
+
+# Install pip requirements, with cache mounting ~/.cache/pip for faster builds
+# Note: Cache mounts allow us to re-use the cache for pip packages
+# instead of having to re-download them every time we build.
+COPY requirements/requirements.txt /tmp/reqs/requirements/requirements.txt
+RUN --mount=type=cache,target=~/.cache/pip \
+    pip install --upgrade pip \
+    && pip install -r /tmp/reqs/requirements/requirements.txt \
+    && echo "pip requirements install complete"
 
 # Export conda environment on login
 RUN echo "export CONDA_PATH=/opt/conda/envs/${AGIPACK_PYENV}" >> ~/.bashrc \
@@ -63,7 +74,6 @@ RUN /opt/conda/bin/mamba clean -ya \
     && rm -rf /opt/conda/pkgs/* \
     && rm -rf /tmp/reqs \
     && echo "pip cleanup complete"
-
 
 # Setup working directory
 WORKDIR /app/$AGIPACK_PYENV

@@ -1,0 +1,5 @@
+images:
+  base-cpu:
+    python: 3.8.10
+    run:
+      - echo "Hello, world!"
