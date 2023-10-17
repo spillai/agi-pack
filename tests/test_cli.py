@@ -38,8 +38,13 @@ def test_generate(runner):
         result = runner.invoke(app, ["generate"])
         assert result.exit_code == 0
 
-        # Use absolute path for the config file
+        # Generate
         result = runner.invoke(app, ["generate", "-c", AGIPACK_SAMPLE_FILENAME])
+        assert result.exit_code == 0
+        assert Pathlib("Dockerfile").exists()
+
+        # Build a specific target
+        result = runner.invoke(app, ["generate", "-c", AGIPACK_SAMPLE_FILENAME, "-t", "agi:{target}"])
         assert result.exit_code == 0
         assert Pathlib("Dockerfile").exists()
 
@@ -47,3 +52,23 @@ def test_generate(runner):
         result = runner.invoke(app, ["generate", "-c", AGIPACK_SAMPLE_FILENAME, "-o", "Dockerfile.base"])
         assert result.exit_code == 0
         assert Pathlib("Dockerfile.base").exists()
+
+
+@pytest.mark.docker
+def test_builder(runner):
+    with tempfile.TemporaryDirectory() as tmpdir:
+        os.chdir(tmpdir)
+        # Copy the sample config file to the current directory
+        shutil.copy(AGIPACK_SAMPLE_FILENAME, AGIPACK_BASENAME)
+        result = runner.invoke(app, ["build"])
+        assert result.exit_code == 0
+
+        # Build and tag target
+        result = runner.invoke(app, ["build", "-c", AGIPACK_SAMPLE_FILENAME, "-t", "agi:{target}"])
+        assert result.exit_code == 0
+        assert Pathlib("Dockerfile").exists()
+
+        # Build and tag target
+        result = runner.invoke(app, ["generate", "-c", AGIPACK_SAMPLE_FILENAME, "-t", "agi:{target}", "--build"])
+        assert result.exit_code == 0
+        assert Pathlib("Dockerfile").exists()

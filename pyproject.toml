@@ -102,3 +102,9 @@ ignore = [
 ]
 line-length = 119
 target-version = "py38"
+
+[tool.pytest.ini_options]
+addopts = "-sv -m 'not (skip) and not (docker)'"
+markers = [
+    "docker",   # Tests that require docker and docker builds
+]

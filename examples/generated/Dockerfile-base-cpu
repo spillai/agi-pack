@@ -45,15 +45,15 @@ RUN curl -sLo ~/mambaforge.sh "https://github.com/conda-forge/miniforge/releases
 # Upgrade pip
 RUN pip install --upgrade pip
 
-# Install pip packages, with cache mounting ~/.cache/pip for faster builds
-# Note: Cache mounts allow us to re-use the cache for pip packages
+# Install conda packages, with cache mounting /opt/conda/pkgs for faster builds
+# Note: Cache mounts allow us to re-use the cache for conda packages
 # instead of having to re-download them every time we build.
-RUN --mount=type=cache,target=~/.cache/pip \
-    pip install \
+RUN --mount=type=cache,target=/opt/conda/pkgs/ \
+    mamba install -yv \
     pytorch>=2.1 \
     torchvision \
     cpuonly -c pytorch \
-    && echo "pip install complete"
+    && echo "conda/mamba install complete"
 
 # Install pip requirements, with cache mounting ~/.cache/pip for faster builds
 # Note: Cache mounts allow us to re-use the cache for pip packages
