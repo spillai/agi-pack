@@ -30,25 +30,32 @@ ENV CONDA_DEFAULT_ENV ${AGIPACK_PYENV}
 {%- endif %}
 
 
-{%- if env|length > 0 %}
+{%- if is_base_image %}
 
-# Setup environment variables
-{% for key, value in env.items() -%}
-ENV {{ key }}={{ value }} {% endfor %}
+# Install base system packages
+RUN apt-get -y update \
+    && apt-get -y --no-install-recommends install \
+    curl bzip2 git ca-certificates \
+    && apt-get -y autoclean \
+    && apt-get -y autoremove \
+    && rm -rf /var/lib/apt/lists/*
 
 {%- endif %}
 
 
-# Install system packages
+{%- if system|length > 0 %}
+
+# Install additional system packages
 RUN apt-get -y update \
     && apt-get -y --no-install-recommends install \
-    curl bzip2 git ca-certificates \
 {%- for package in system %}
     {{ package }} \
 {%- endfor %}
     && apt-get -y autoclean \
     && apt-get -y autoremove \
     && rm -rf /var/lib/apt/lists/*
+
+{%- endif %}
 
 
 {%- if is_base_image %}
@@ -158,6 +165,15 @@ RUN echo "running commands"
 RUN {{ cmd }}
 {%- endfor %}
 RUN echo "run commands complete"
+
+{%- endif %}
+
+
+{%- if env|length > 0 %}
+
+# Setup environment variables
+{% for key, value in env.items() -%}
+ENV {{ key }}={{ value }} {% endfor %}
 
 {%- endif %}
 

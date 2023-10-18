@@ -16,6 +16,7 @@ def test_configs(test_data_dir):
         test_data_dir / "agibuild-with-deps.yaml",
         test_data_dir / "agibuild-no-system.yaml",
         test_data_dir / "agibuild-no-deps.yaml",
+        test_data_dir / "agibuild-different-py-versions.yaml",
     ]
     for filename in configs:
         logger.info(f"Testing {filename}")
@@ -26,7 +27,6 @@ def test_configs(test_data_dir):
 def test_poorly_formatted_configs(test_data_dir):
     poorly_formatted_configs = [
         test_data_dir / "agibuild-no-base.yaml",
-        test_data_dir / "agibuild-different-py-versions.yaml",
     ]
     for filename in poorly_formatted_configs:
         with pytest.raises(ValueError):

@@ -182,8 +182,10 @@ class AGIPackConfig:
         for target, config in images.items():
             if config.is_base_image():
                 version = config.python
-            elif config.python != version:
-                raise ValueError(f"Non-base image [{target}] must have the same python version as the base image")
+            else:
+                if config.python != version:
+                    logger.debug(f"Ignoring python version for non-base image [{target}]")
+                    config.python = version
         return images
 
     @classmethod
