@@ -169,18 +169,22 @@ class AGIPack:
             image_tags = [f"{image_config.name}:{target}"]
         logger.debug(f"Image tags: {image_tags}")
 
+        # Build the Docker image (using buildkit)
         cmd = ["docker", "build", "-f", filename, "--target", target]
         for tag in image_tags:
             cmd.extend(["-t", tag])
         cmd.append(".")
 
         logger.debug(f"Running command: {cmd}")
+        env = os.environ.copy()
+        env.update({"DOCKER_BUILDKIT": "1"})
         process = subprocess.Popen(
             cmd,
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             universal_newlines=True,
+            env=env,
         )
         for line in iter(process.stdout.readline, ""):
             print(line, end="")

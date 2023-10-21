@@ -93,7 +93,7 @@ class ImageConfig:
     entrypoint: Optional[List[str]] = field(default_factory=list)
     """Entrypoint for the image."""
 
-    command: Optional[Union[str, List[str]]] = field(default_factory=lambda: ["bash"])
+    command: Optional[Union[str, List[str]]] = field(default_factory=list)
     """Command to run in the image."""
 
     def additional_kwargs(self):
