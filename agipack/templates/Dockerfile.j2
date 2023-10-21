@@ -151,7 +151,7 @@ WORKDIR /app/$AGIPACK_PYENV
 
 # Add project files
 {%- for item in add %}
-ADD {{ item }} {{ item }}
+ADD {{ item.split(":")[0] }} {{ item.split(":")[1] }}
 {%- endfor %}
 
 {%- endif %}
