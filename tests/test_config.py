@@ -27,6 +27,7 @@ def test_configs(test_data_dir):
 def test_poorly_formatted_configs(test_data_dir):
     poorly_formatted_configs = [
         test_data_dir / "agibuild-no-base.yaml",
+        test_data_dir / "agibuild-malformed-add.yaml",
     ]
     for filename in poorly_formatted_configs:
         with pytest.raises(ValueError):

@@ -1,7 +1,7 @@
 import logging
 from dataclasses import asdict, field
 from pathlib import Path
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 import yaml
 from pydantic import validator
@@ -82,7 +82,7 @@ class ImageConfig:
     """List of Python requirements files to install (via `pip install -r`)."""
 
     add: Optional[List[str]] = field(default_factory=list)
-    """List of files to copy into the image."""
+    """List of files to add into the image (`./entrypoint.sh:/app/entrytpoint.sh`)."""
 
     workdir: Optional[str] = field(default=None)
     """Working directory for the image (defaults to /app/${AGIPACK_ENV} if not set)."""
@@ -114,15 +114,28 @@ class ImageConfig:
         return ":" in self.base
 
     @validator("python", pre=True)
-    def validate_python_version(cls, python):
+    def validate_python_version(cls, python) -> str:
         """Validate the python version."""
         python = str(python)
         if not python.startswith("3."):
             raise ValueError(f"Python version must be >= 3.6 (found {python})")
         return python
 
+    @validator("add", pre=True)
+    def validate_add(cls, items) -> Tuple[str, str]:
+        """Validate the add command."""
+        for item in items:
+            if ":" not in item:
+                raise ValueError(
+                    f"`add` must have a colon to separate from and to paths `from_path:to_path`, provided {item}"
+                )
+            from_path, to_path = item.split(":")
+            if not Path(from_path).exists():
+                raise ValueError(f"`add` {from_path} does not exist")
+        return items
+
     @validator("command", pre=True)
-    def validate_command_version(cls, cmd):
+    def validate_command_version(cls, cmd) -> List[str]:
         """Validate the command."""
         if isinstance(cmd, str):
             cmd = cmd.split(" ")
@@ -178,14 +191,14 @@ class AGIPackConfig:
     @validator("images")
     def validate_python_dependencies_for_nonbase_images(cls, images):
         """Validate that all images have the same python dependency as the base image."""
-        version = None
+        py_version = None
         for target, config in images.items():
             if config.is_base_image():
-                version = config.python
+                py_version = config.python
             else:
-                if config.python != version:
+                if config.python != py_version:
                     logger.debug(f"Ignoring python version for non-base image [{target}]")
-                    config.python = version
+                    config.python = py_version
         return images
 
     @classmethod

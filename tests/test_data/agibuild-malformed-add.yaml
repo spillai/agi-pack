@@ -1,0 +1,11 @@
+images:
+  base-cpu:
+    system:
+      - wget
+    python: 3.8.10
+    pip:
+      - scikit-learn
+    add:
+      - "path_without_colon.txt"
+    run:
+      - echo "Hello, world!"
