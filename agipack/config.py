@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Dict, List, Optional, Union
 
 import yaml
-from pydantic import field_validator
+from pydantic import validator
 from pydantic.dataclasses import dataclass
 
 logger = logging.getLogger(__name__)
@@ -113,7 +113,7 @@ class ImageConfig:
         """Check if the base target is root / does not have a parent."""
         return ":" in self.base
 
-    @field_validator("python", mode="before")
+    @validator("python", pre=True)
     def validate_python_version(cls, python):
         """Validate the python version."""
         python = str(python)
@@ -121,7 +121,7 @@ class ImageConfig:
             raise ValueError(f"Python version must be >= 3.6 (found {python})")
         return python
 
-    @field_validator("command", mode="before")
+    @validator("command", pre=True)
     def validate_command_version(cls, cmd):
         """Validate the command."""
         if isinstance(cmd, str):
@@ -175,7 +175,7 @@ class AGIPackConfig:
         """Check if the configuration is for production."""
         return self.prod
 
-    @field_validator("images")
+    @validator("images")
     def validate_python_dependencies_for_nonbase_images(cls, images):
         """Validate that all images have the same python dependency as the base image."""
         version = None
