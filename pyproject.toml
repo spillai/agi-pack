@@ -28,7 +28,7 @@ classifiers = [
 dynamic = ["version"]
 dependencies = [
     "jinja2",
-    "pydantic>=2",
+    "pydantic<2",
     "pyyaml",
     "typer[all]"
 ]

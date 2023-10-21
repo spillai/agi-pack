@@ -1,4 +1,3 @@
-import importlib
 from pathlib import Path
 
 import typer
@@ -21,7 +20,9 @@ def main(ctx: typer.Context):
 @app.command()
 def version():
     """Print the version number."""
-    print(importlib.metadata.version("agi-pack"))
+    from agipack.version import __version__
+
+    print(__version__)
 
 
 @app.command()
