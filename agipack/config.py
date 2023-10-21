@@ -260,7 +260,10 @@ class AGIPackConfig:
                     raise ValueError(f"First image [{target}] must be the base image")
                 self._target_tree[target] = _ImageNode(name=target, root=True)
             else:
-                assert config.base in self._target_tree
+                if config.base not in self._target_tree:
+                    raise ValueError(
+                        f"Base image for derived target `{target}` needs to be one of {list(self._target_tree.keys())}."
+                    )
                 self._target_tree[target] = _ImageNode(name=target)
                 self._target_tree[config.base].children.append(target)
         logger.debug(f"Target dependencies: {self._target_tree}")
