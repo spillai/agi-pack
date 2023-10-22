@@ -3,7 +3,7 @@ images:
   base-cpu:
     system:
       - wget
-    python: 3.8
+    python: "3.8"
     conda:
       - pytorch>=2.1
       - torchvision

@@ -4,7 +4,7 @@ images:
     base: nvidia/cuda:11.8.0-base-ubuntu22.04
     system:
       - wget
-    python: 3.8
+    python: "3.8"
     conda:
       - pytorch==2.1.0
       - torchvision

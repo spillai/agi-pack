@@ -2,7 +2,7 @@
 images:
   agipack-builder:
     base: debian:buster-slim
-    python: 3.8
+    python: "3.8"
     run:
       - pip install agi-pack
     command: ["agi-pack", "generate", "-f"]

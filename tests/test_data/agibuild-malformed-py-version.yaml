@@ -1,7 +1,5 @@
 images:
   base-cpu:
-    python: "3.8.10"
-    pip:
-      - scikit-learn
+    python: 3.10  # float casts to string ("3.1")
     run:
       - echo "Hello, world!"
