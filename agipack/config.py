@@ -116,7 +116,8 @@ class ImageConfig:
     @validator("python", pre=True)
     def validate_python_version(cls, python) -> str:
         """Validate the python version."""
-        python = str(python)
+        if not isinstance(python, str):
+            raise ValueError(f"Python version must be a string (type={type(python)})")
         if not python.startswith("3."):
             raise ValueError(f"Python version must be >= 3.6 (found {python})")
         return python

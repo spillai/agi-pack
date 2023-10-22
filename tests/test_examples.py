@@ -15,8 +15,11 @@ EXAMPLES = list(EXAMPLES_DIR.glob("*.yaml"))
 @pytest.mark.parametrize("filename", EXAMPLES)
 def test_parse_yaml(filename):
     logger.info(f"Testing example {filename}")
-    config = AGIPackConfig.load_yaml(filename)
-    assert config is not None
+    try:
+        config = AGIPackConfig.load_yaml(filename)
+        assert config is not None
+    except Exception as e:
+        raise Exception(f"Failed to parse {filename}, e={e}")
 
     basename = filename.stem.replace("agibuild.", "")
     filename = EXAMPLES_DIR / "generated" / f"Dockerfile-{basename}"

@@ -58,7 +58,7 @@ Go through the [examples](./examples) and the corresponding [examples/generated]
         system:
         - wget
         - build-essential
-        python: 3.8.10
+        python: "3.8.10"
         pip:
         - loguru
         - typer
@@ -112,7 +112,7 @@ images:
     base: debian:buster-slim
     system:
         - wget
-    python: 3.8.10
+    python: "3.8.10"
     pip:
         - scikit-learn
     run:
@@ -166,7 +166,7 @@ images:
     - gnupg2
     - build-essential
     - git
-    python: 3.8.10
+    python: "3.8.10"
     pip:
     - torch==2.0.1
 ```

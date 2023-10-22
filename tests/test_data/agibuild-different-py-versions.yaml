@@ -2,7 +2,7 @@ images:
   base-cpu:
     system:
       - wget
-    python: 3.8
+    python: "3.8"
     pip:
       - scikit-learn
     run:
@@ -10,6 +10,6 @@ images:
 
   dev-cpu:
     base: base-cpu
-    python: 3.9
+    python: "3.9"
     system:
       - build-essential
