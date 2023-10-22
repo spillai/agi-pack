@@ -21,10 +21,10 @@ ENV PYTHONUNBUFFERED 1
 ENV PYTHONWARNINGS ignore
 
 # Setup conda paths
-ENV CONDA_PATH=/opt/conda/envs/${AGIPACK_PYENV}
+ENV CONDA_PATH=${AGIPACK_PATH}/conda/envs/${AGIPACK_PYENV}
 ENV CONDA_PREFIX=${CONDA_PATH}
 ENV CONDA_EXE=${CONDA_PATH}/bin/conda
-ENV PATH=${CONDA_PATH}/bin:/opt/conda/bin:$PATH
+ENV PATH=${CONDA_PATH}/bin:${AGIPACK_PATH}/conda/bin:$PATH
 ENV CONDA_DEFAULT_ENV ${AGIPACK_PYENV}
 
 {%- endif %}
@@ -63,10 +63,10 @@ RUN apt-get -y update \
 # Install mambaforge
 RUN curl -sLo ~/mambaforge.sh "https://github.com/conda-forge/miniforge/releases/latest/download/Mambaforge-$(uname)-$(uname -m).sh" \
   && chmod +x ~/mambaforge.sh \
-  && ~/mambaforge.sh -b -p /opt/conda \
-  && /opt/conda/bin/mamba init bash \
-  && /opt/conda/bin/mamba config --add channels conda-forge \
-  && /opt/conda/bin/mamba create -n ${AGIPACK_PYENV} python=${PYTHON_VERSION} -y \
+  && ~/mambaforge.sh -b -p ${AGIPACK_PATH}/conda \
+  && ${AGIPACK_PATH}/conda/bin/mamba init bash \
+  && ${AGIPACK_PATH}/conda/bin/mamba config --add channels conda-forge \
+  && ${AGIPACK_PATH}/conda/bin/mamba create -n ${AGIPACK_PYENV} python=${PYTHON_VERSION} -y \
   && rm ~/mambaforge.sh
 
 # Upgrade pip
@@ -76,10 +76,10 @@ RUN pip install --upgrade pip
 
 {%- if conda|length > 0 %}
 
-# Install conda packages, with cache mounting /opt/conda/pkgs for faster builds
+# Install conda packages, with cache mounting ${AGIPACK_PATH}/conda/pkgs for faster builds
 # Note: Cache mounts allow us to re-use the cache for conda packages
 # instead of having to re-download them every time we build.
-RUN --mount=type=cache,target=/opt/conda/pkgs/ \
+RUN --mount=type=cache,target=${AGIPACK_PATH}/conda/pkgs/ \
     mamba install -yv \
 {%- for package in conda %}
     {{ package }} \
@@ -124,15 +124,15 @@ RUN --mount=type=cache,target=~/.cache/pip \
 {%- if is_base_image %}
 
 # Export conda environment on login
-RUN echo "export CONDA_PATH=/opt/conda/envs/${AGIPACK_PYENV}" >> ~/.bashrc \
-    && echo "export PATH=/opt/conda/envs/${AGIPACK_PYENV}/bin:$PATH" >> ~/.bashrc \
+RUN echo "export CONDA_PATH=${AGIPACK_PATH}/conda/envs/${AGIPACK_PYENV}" >> ~/.bashrc \
+    && echo "export PATH=${AGIPACK_PATH}/conda/envs/${AGIPACK_PYENV}/bin:$PATH" >> ~/.bashrc \
     && echo "export CONDA_DEFAULT_ENV=${AGIPACK_PYENV}" >> ~/.bashrc \
     && echo "mamba activate ${AGIPACK_PYENV}" > ~/.bashrc
 
 {%- if is_prod %}
-RUN /opt/conda/bin/mamba clean -ya \
+RUN ${AGIPACK_PATH}/conda/bin/mamba clean -ya \
     && rm -rf ~/.cache/pip \
-    && rm -rf /opt/conda/pkgs/* \
+    && rm -rf ${AGIPACK_PATH}/conda/pkgs/* \
     && rm -rf /tmp/reqs \
     && echo "pip cleanup complete"
 {%- endif %}
