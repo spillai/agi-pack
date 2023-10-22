@@ -19,6 +19,8 @@ ENV PYTHON_VERSION {{ python }}
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 ENV PYTHONWARNINGS ignore
+ENV PIP_CACHE_DIR /var/cache/pip
+ENV CONDA_PKGS_DIRS /var/cache/conda/pkgs
 
 # Setup conda paths
 ENV CONDA_PATH=${AGIPACK_PATH}/conda/envs/${AGIPACK_PYENV}
@@ -35,10 +37,7 @@ ENV CONDA_DEFAULT_ENV ${AGIPACK_PYENV}
 # Install base system packages
 RUN apt-get -y update \
     && apt-get -y --no-install-recommends install \
-    curl bzip2 git ca-certificates \
-    && apt-get -y autoclean \
-    && apt-get -y autoremove \
-    && rm -rf /var/lib/apt/lists/*
+    curl bzip2 git ca-certificates
 
 {%- endif %}
 
@@ -46,22 +45,22 @@ RUN apt-get -y update \
 {%- if system|length > 0 %}
 
 # Install additional system packages
-RUN apt-get -y update \
+RUN --mount=type=cache,target=/var/cache/apt \
+    apt-get -y update \
     && apt-get -y --no-install-recommends install \
 {%- for package in system %}
     {{ package }} \
 {%- endfor %}
-    && apt-get -y autoclean \
-    && apt-get -y autoremove \
-    && rm -rf /var/lib/apt/lists/*
+    && echo "system install complete"
 
 {%- endif %}
 
 
 {%- if is_base_image %}
 
-# Install mambaforge
-RUN curl -sLo ~/mambaforge.sh "https://github.com/conda-forge/miniforge/releases/latest/download/Mambaforge-$(uname)-$(uname -m).sh" \
+# Install mambaforge, with cache mounting ${CONDA_PKGS_DIRS} for faster builds
+RUN --mount=type=cache,target=${CONDA_PKGS_DIRS} \
+  curl -sLo ~/mambaforge.sh "https://github.com/conda-forge/miniforge/releases/latest/download/Mambaforge-$(uname)-$(uname -m).sh" \
   && chmod +x ~/mambaforge.sh \
   && ~/mambaforge.sh -b -p ${AGIPACK_PATH}/conda \
   && ${AGIPACK_PATH}/conda/bin/mamba init bash \
@@ -76,10 +75,10 @@ RUN pip install --upgrade pip
 
 {%- if conda|length > 0 %}
 
-# Install conda packages, with cache mounting ${AGIPACK_PATH}/conda/pkgs for faster builds
+# Install conda packages, with cache mounting ${CONDA_PKGS_DIRS} for faster builds
 # Note: Cache mounts allow us to re-use the cache for conda packages
 # instead of having to re-download them every time we build.
-RUN --mount=type=cache,target=${AGIPACK_PATH}/conda/pkgs/ \
+RUN --mount=type=cache,target=${CONDA_PKGS_DIRS}  \
     mamba install -yv \
 {%- for package in conda %}
     {{ package }} \
@@ -90,13 +89,13 @@ RUN --mount=type=cache,target=${AGIPACK_PATH}/conda/pkgs/ \
 
 {%- if pip|length > 0 %}
 
-# Install pip packages, with cache mounting ~/.cache/pip for faster builds
+# Install pip packages, with cache mounting ${PIP_CACHE_DIR} for faster builds
 # Note: Cache mounts allow us to re-use the cache for pip packages
 # instead of having to re-download them every time we build.
-RUN --mount=type=cache,target=~/.cache/pip \
-    pip install \
+RUN --mount=type=cache,target=${PIP_CACHE_DIR} \
+    pip install --cache-dir ${PIP_CACHE_DIR} \
 {%- for package in pip %}
-    {{ package }} \
+    "{{ package }}" \
 {%- endfor %}
     && echo "pip install complete"
 
@@ -105,13 +104,13 @@ RUN --mount=type=cache,target=~/.cache/pip \
 
 {%- if requirements|length > 0 %}
 
-# Install pip requirements, with cache mounting ~/.cache/pip for faster builds
+# Install pip requirements, with cache mounting ${PIP_CACHE_DIR} for faster builds
 # Note: Cache mounts allow us to re-use the cache for pip packages
 # instead of having to re-download them every time we build.
 {%- for package in requirements %}
 COPY {{ package }} /tmp/reqs/{{ package }}
 {%- endfor %}
-RUN --mount=type=cache,target=~/.cache/pip \
+RUN --mount=type=cache,target=${PIP_CACHE_DIR} \
     pip install --upgrade pip \
 {%- for package in requirements %}
     && pip install -r /tmp/reqs/{{ package }} \
@@ -128,14 +127,6 @@ RUN echo "export CONDA_PATH=${AGIPACK_PATH}/conda/envs/${AGIPACK_PYENV}" >> ~/.b
     && echo "export PATH=${AGIPACK_PATH}/conda/envs/${AGIPACK_PYENV}/bin:$PATH" >> ~/.bashrc \
     && echo "export CONDA_DEFAULT_ENV=${AGIPACK_PYENV}" >> ~/.bashrc \
     && echo "mamba activate ${AGIPACK_PYENV}" > ~/.bashrc
-
-{%- if is_prod %}
-RUN ${AGIPACK_PATH}/conda/bin/mamba clean -ya \
-    && rm -rf ~/.cache/pip \
-    && rm -rf ${AGIPACK_PATH}/conda/pkgs/* \
-    && rm -rf /tmp/reqs \
-    && echo "pip cleanup complete"
-{%- endif %}
 
 {%- endif %}
 
@@ -162,12 +153,26 @@ ADD {{ item.split(":")[0] }} {{ item.split(":")[1] }}
 # Run commands
 RUN echo "running commands"
 {%- for cmd in run %}
-RUN {{ cmd }}
+RUN --mount=type=cache,target=${CONDA_PKGS_DIRS} \
+    --mount=type=cache,target=${PIP_CACHE_DIR} \
+    {{ cmd }}
 {%- endfor %}
 RUN echo "run commands complete"
 
 {%- endif %}
 
+
+{%- if is_prod %}
+# Cleanup apt, mamba/conda and pip packages
+RUN apt-get -y autoclean \
+    && apt-get -y autoremove \
+    && rm -rf /var/lib/apt/lists/* \
+    && ${AGIPACK_PATH}/conda/bin/mamba clean -ya \
+    && rm -rf ~/.cache/pip \
+    && rm -rf ${AGIPACK_PATH}/conda/pkgs/* \
+    && rm -rf /tmp/reqs \
+    && echo "pip cleanup complete"
+{%- endif %}
 
 {%- if env|length > 0 %}
 
