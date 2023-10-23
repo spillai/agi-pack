@@ -156,13 +156,14 @@ class AGIPack:
 
         return dockerfiles
 
-    def build(self, filename: str, target: str, tags: List[str] = None) -> None:
+    def build(self, filename: str, target: str, tags: List[str] = None, push: bool = False) -> None:
         """Builds a Docker image using the generated Dockerfile.
 
         Args:
             filename (str): Path to the generated Dockerfile.
             target (str): Target image name.
             tag (List[str[]): Tag for the Docker image.
+            push (bool): Push the Docker image to the container repository.
         """
         logger.info(f"🚀 Building Docker image for target [{target}]")
         image_config = self.config.images[target]
@@ -196,6 +197,13 @@ class AGIPack:
             print(line, end="")
         process.wait()
 
+        if process.returncode != 0:
+            raise Exception(f"Failed to build image [target={target}]")
+
+        # Push the Docker image
+        if push:
+            self.push(image_tags)
+
     def lint(self, filename: str) -> bool:
         """Lint the generated Dockerfile using hadolint.
 
@@ -216,3 +224,29 @@ class AGIPack:
         for line in iter(process.stdout.readline, ""):
             print(line, end="")
         return process.returncode == 0
+
+    def push(self, tags: List[str]) -> None:
+        """Pushes Docker image tags to the container repository.
+
+        Args:
+            tags (List[str]): Tags for the Docker image.
+        """
+        logger.info(f"🚀 Pushing Docker images [{tags}]")
+
+        # Push the Docker image
+        for tag in tags:
+            cmd = f"docker push {tag}"
+            logger.debug(f"Running command: {cmd}")
+            process = subprocess.Popen(
+                cmd,
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                universal_newlines=True,
+                shell=True,
+            )
+            for line in iter(process.stdout.readline, ""):
+                print(line, end="")
+            process.wait()
+            if process.returncode != 0:
+                raise Exception(f"Failed to push image [tag={tag}]")

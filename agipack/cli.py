@@ -6,6 +6,7 @@ from rich.tree import Tree
 
 from agipack.builder import AGIPack, AGIPackConfig
 from agipack.constants import AGIPACK_BASENAME, AGIPACK_SAMPLE_FILENAME
+from agipack.version import __version__
 
 app = typer.Typer(invoke_without_command=True)
 
@@ -20,8 +21,6 @@ def main(ctx: typer.Context):
 @app.command()
 def version():
     """Print the version number."""
-    from agipack.version import __version__
-
     print(__version__)
 
 
@@ -63,16 +62,18 @@ def generate(
     skip_base_builds: bool = typer.Option(
         False, "--skip-base", help="Skip building the base image.", show_default=False
     ),
+    push: bool = typer.Option(False, "--push", help="Push image to container repository.", show_default=False),
 ):
-    """Generate the Dockerfile with optional overrides.
+    r"""Generate the Dockerfile with optional overrides.
 
-    Usage:
-        agi-pack generate -c agibuild.yaml
-        agi-pack generate -c agibuild.yaml -o docker/Dockerfile
-        agi-pack generate -c agibuild.yaml -p 3.8.10
-        agi-pack generate -c agibuild.yaml -b python:3.8.10-slim
-        agi-pack generate -c agibuild.yaml -t "my-image-name:{target}"
-        agi-pack generate -c agibuild.yaml --prod --lint
+    Usage:\n
+        agi-pack generate -c agibuild.yaml\n
+        agi-pack generate -c agibuild.yaml -o docker/Dockerfile\n
+        agi-pack generate -c agibuild.yaml -p 3.8.10\n
+        agi-pack generate -c agibuild.yaml -b python:3.8.10-slim\n
+        agi-pack generate -c agibuild.yaml -t "my-image-name:{target}"\n
+        agi-pack generate -c agibuild.yaml --prod --lint\n
+        agi-pack generate -c agibuild.yaml --build --push\n
     """
     # Load the YAML configuration
     config = AGIPackConfig.load_yaml(config_filename)
@@ -115,11 +116,16 @@ def generate(
         # Build the Docker image using subprocess and print all the output as it happens
         if build:
             print(f"🚀 Building Docker image for target [{target}]")
-            builder.build(filename=filename, target=target, tags=[tag_name])
+            builder.build(filename=filename, target=target, tags=[tag_name], push=push)
 
             tree.add(
                 f"[bold green]✓[/bold green] Successfully built image (target=[bold white]{target}[/bold white], image=[bold white]{tag_name}[/bold white])."
             )
+            # Push the Docker image to the container repository
+            if push:
+                tree.add(
+                    f"[bold green]✓[/bold green] Successfully pushed image (target=[bold white]{target}[/bold white], image=[bold white]{tag_name}[/bold white])."
+                )
             trees.append(tree)
 
     # Re-render the tree
@@ -148,17 +154,19 @@ def build(
     skip_base_builds: bool = typer.Option(
         False, "--skip-base", help="Skip building the base image.", show_default=False
     ),
+    push: bool = typer.Option(False, "--push", help="Push image to container repository.", show_default=False),
 ):
     """Generate the Dockerfile with optional overrides.
 
-    Usage:
-        agi-pack build -c agibuild.yaml
-        agi-pack build -c agibuild.yaml -o docker/Dockerfile
-        agi-pack build -c agibuild.yaml -p 3.8.10
-        agi-pack build -c agibuild.yaml -b python:3.8.10-slim
-        agi-pack build -c agibuild.yaml -t "my-image-name:{target}"
-        agi-pack build -c agibuild.yaml -t "my-image-name:my-target"
-        agi-pack build -c agibuild.yaml --prod --lint
+    Usage:\n
+        agi-pack build -c agibuild.yaml\n
+        agi-pack build -c agibuild.yaml -o docker/Dockerfile\n
+        agi-pack build -c agibuild.yaml -p 3.8.10\n
+        agi-pack build -c agibuild.yaml -b python:3.8.10-slim\n
+        agi-pack build -c agibuild.yaml -t "my-image-name:{target}"\n
+        agi-pack build -c agibuild.yaml -t "my-image-name:my-target"\n
+        agi-pack build -c agibuild.yaml --prod --lint\n
+        agi-pack build -c agibuild.yaml --push\n
     """
     generate(
         config_filename,
