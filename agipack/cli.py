@@ -104,7 +104,7 @@ def generate(
         cmd = f"docker build -f {filename} --target {docker_target} -t {tag_name} ."
 
         # Print the command to build the Dockerfile
-        tree = Tree(f"📦 [bold white]docker_{target}[/bold white]")
+        tree = Tree(f"📦 [bold white]{docker_target}[/bold white]")
         tree.add(
             f"[bold green]✓[/bold green] Successfully generated Dockerfile (target=[bold white]{docker_target}[/bold white], filename=[bold white]{filename}[/bold white])."
         ).add(f"[green]`{cmd}`[/green]")
@@ -112,12 +112,12 @@ def generate(
 
         # Lint the generated Dockerfile using hadolint
         if lint:
-            print(f"🔍 Linting Dockerfile for target [docker_{target}]")
+            print(f"🔍 Linting Dockerfile for target [{docker_target}]")
             builder.lint(filename=filename)
 
         # Build the Docker image using subprocess and print all the output as it happens
         if build:
-            print(f"🚀 Building Docker image for target [docker_{target}]")
+            print(f"🚀 Building Docker image for target [{docker_target}]")
             builder.build(filename=filename, target=docker_target, tags=[tag_name], push=push)
 
             tree.add(
