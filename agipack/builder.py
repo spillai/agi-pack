@@ -28,6 +28,9 @@ class AGIPackRenderOptions:
     env: str = field(default=AGIPACK_ENV)
     """AGIPack environment to use for the build."""
 
+    skip_base_builds: bool = field(default=False)
+    """Skip building the base images."""
+
     def is_prod(self) -> bool:
         """Check if the build is for production."""
         return self.env == "prod"
@@ -96,7 +99,10 @@ class AGIPack:
 
         # Render the Dockerfile template
         image_dict["target"] = target
-        image_dict["is_base_image"] = self.config.is_root(target)
+        if options.skip_base_builds:
+            image_dict["is_base_image"] = False
+        else:
+            image_dict["is_base_image"] = self.config.is_root(target)
         image_dict["is_prod"] = options.is_prod()
         image_dict["agipack_version"] = __version__
         content = template.render(image_dict)

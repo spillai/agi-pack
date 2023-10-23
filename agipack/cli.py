@@ -56,9 +56,13 @@ def generate(
         None, "--base", "-b", help="Base image to use for the root/base target.", show_default=False
     ),
     tag: str = typer.Option("{name}:{target}", "--tag", "-t", help="Image tag f-string.", show_default=True),
+    _target: str = typer.Option(None, "--target", help="Build specific target.", show_default=False),
     prod: bool = typer.Option(False, "--prod", help="Generate a production Dockerfile.", show_default=False),
     lint: bool = typer.Option(False, "--lint", help="Lint the generated Dockerfile.", show_default=False),
     build: bool = typer.Option(False, "--build", help="Build the Docker image after generating the Dockerfile."),
+    skip_base_builds: bool = typer.Option(
+        False, "--skip-base", help="Skip building the base image.", show_default=False
+    ),
 ):
     """Generate the Dockerfile with optional overrides.
 
@@ -81,17 +85,25 @@ def generate(
         config.images[root].base = base_image
 
     # Render the Dockerfiles with the new filename and configuration
+    trees = []
     builder = AGIPack(config)
-    dockerfiles = builder.render(filename=filename, env="prod" if prod else "dev")
+    dockerfiles = builder.render(filename=filename, env="prod" if prod else "dev", skip_base_builds=skip_base_builds)
     for target, filename in dockerfiles.items():
+        # Skip if the target is not the one we want to build
+        if _target is not None and target != _target:
+            continue
         image_config = config.images[target]
 
         # Build the Dockerfile using the generated filename and target
-        tag_name = f"{image_config.name}:{target}" if tag is None else tag.format(name=image_config.name, target=target)
+        tag_name = (
+            f"{image_config.name}:{target}" if tag is None else tag.format(name=image_config.name, target=target)
+        )
         cmd = f"docker build -f {filename} --target {target} -t {tag_name} ."
+
+        # Print the command to build the Dockerfile
         tree = Tree(f"📦 [bold white]{target}[/bold white]")
         tree.add(
-            f"🎉 Successfully generated Dockerfile (target=[bold white]{target}[/bold white], filename=[bold white]{filename}[/bold white])."
+            f"[bold green]✓[/bold green] Successfully generated Dockerfile (target=[bold white]{target}[/bold white], filename=[bold white]{filename}[/bold white])."
         ).add(f"[green]`{cmd}`[/green]")
         print(tree)
 
@@ -104,6 +116,15 @@ def generate(
         if build:
             print(f"🚀 Building Docker image for target [{target}]")
             builder.build(filename=filename, target=target, tags=[tag_name])
+
+            tree.add(
+                f"[bold green]✓[/bold green] Successfully built image (target=[bold white]{target}[/bold white], image=[bold white]{tag_name}[/bold white])."
+            )
+            trees.append(tree)
+
+    # Re-render the tree
+    for tree in trees:
+        print(tree)
 
 
 @app.command()
@@ -121,8 +142,12 @@ def build(
         None, "--base", "-b", help="Base image to use for the root/base target.", show_default=False
     ),
     tag: str = typer.Option("{name}:{target}", "--tag", "-t", help="Image tag f-string.", show_default=True),
+    target: str = typer.Option(None, "--target", help="Build specific target.", show_default=False),
     prod: bool = typer.Option(False, "--prod", help="Generate a production Dockerfile.", show_default=False),
     lint: bool = typer.Option(False, "--lint", help="Lint the generated Dockerfile.", show_default=False),
+    skip_base_builds: bool = typer.Option(
+        False, "--skip-base", help="Skip building the base image.", show_default=False
+    ),
 ):
     """Generate the Dockerfile with optional overrides.
 
@@ -135,7 +160,18 @@ def build(
         agi-pack build -c agibuild.yaml -t "my-image-name:my-target"
         agi-pack build -c agibuild.yaml --prod --lint
     """
-    generate(config_filename, filename, python, base_image, tag, prod, lint, build=True)
+    generate(
+        config_filename,
+        filename,
+        python,
+        base_image,
+        tag,
+        target,
+        prod,
+        lint,
+        build=True,
+        skip_base_builds=skip_base_builds,
+    )
 
 
 if __name__ == "__main__":
