@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Union
 
 import yaml
-from pydantic import validator
+from pydantic import Extra, validator
 from pydantic.dataclasses import dataclass
 
 logger = logging.getLogger(__name__)
@@ -28,7 +28,13 @@ class _ImageNode:
         return not len(self.children)
 
 
-@dataclass
+class _ForbidExtrasConfig:
+    """Pydantic config to forbid extra fields."""
+
+    extra = Extra.forbid
+
+
+@dataclass(config=_ForbidExtrasConfig)
 class ImageConfig:
     """AGIPack configuration for a docker target specified in `agibuild.yaml`
 
@@ -50,15 +56,18 @@ class ImageConfig:
 
     """
 
-    image: str = field(default="agi:latest")
+    image: str = field(default=None)
     """Name of the image repository.
-    Defaults to the <target> name if not provided.
+    Defaults to <name>:<target> if not specified.
     """
 
-    name: str = field(default="agi")
+    name: str = field(default="agipack")
     """Pretty-name of the project in the image and
     reflected in the `AGIPACK_ENV` environment variable in the image.
     """
+
+    target: str = field(default=None)
+    """Name of the target."""
 
     base: str = field(default="debian:buster-slim")
     """Base docker image / target to use (FROM clause in the Dockerfile)."""
@@ -95,6 +104,12 @@ class ImageConfig:
 
     command: Optional[Union[str, List[str]]] = field(default_factory=list)
     """Command to run in the image."""
+
+    def __post_init__(self):
+        if self.target is None:
+            self.target = "latest"
+        if self.image is None:
+            self.image = f"{self.name}:{self.target}"
 
     def additional_kwargs(self):
         """Additional kwargs to pass to the Jinja2 Dockerfile template."""
@@ -211,9 +226,15 @@ class AGIPackConfig:
         Returns:
             AGIPackConfig: AGIPack configuration.
         """
+        path = Path(filename)
+        logger.debug(f"Loading AGIPack configuration from {path}")
+        if not path.exists():
+            raise ValueError(f"YAML file {path.name} does not exist")
+        if not (path.name.endswith(".yaml") or path.name.endswith(".yml")):
+            raise ValueError(f"YAML file {path.name} must have a .yaml or .yml extension")
+
         # Load the YAML file
-        logger.debug(f"Loading AGIPack configuration from {filename}")
-        with open(filename, "r") as f:
+        with path.open("r") as f:
             data = yaml.safe_load(f)
         logger.debug(f"AGIPack configuration: {data}")
 
