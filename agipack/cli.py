@@ -55,10 +55,10 @@ def generate(
     base_image: str = typer.Option(
         None, "--base", "-b", help="Base image to use for the root/base target.", show_default=False
     ),
-    tag: str = typer.Option("agipack:{target}", "--tag", "-t", help="Image tag f-string.", show_default=True),
-    prod: bool = typer.Option(False, "--prod", "-p", help="Generate a production Dockerfile.", show_default=False),
-    lint: bool = typer.Option(False, "--lint", "-l", help="Lint the generated Dockerfile.", show_default=False),
-    build: bool = typer.Option(False, "--build", "-b", help="Build the Docker image after generating the Dockerfile."),
+    tag: str = typer.Option("{name}:{target}", "--tag", "-t", help="Image tag f-string.", show_default=True),
+    prod: bool = typer.Option(False, "--prod", help="Generate a production Dockerfile.", show_default=False),
+    lint: bool = typer.Option(False, "--lint", help="Lint the generated Dockerfile.", show_default=False),
+    build: bool = typer.Option(False, "--build", help="Build the Docker image after generating the Dockerfile."),
 ):
     """Generate the Dockerfile with optional overrides.
 
@@ -87,7 +87,7 @@ def generate(
         image_config = config.images[target]
 
         # Build the Dockerfile using the generated filename and target
-        tag_name = f"{image_config.name}:{target}" if tag is None else tag.format(target=target)
+        tag_name = f"{image_config.name}:{target}" if tag is None else tag.format(name=image_config.name, target=target)
         cmd = f"docker build -f {filename} --target {target} -t {tag_name} ."
         tree = Tree(f"📦 [bold white]{target}[/bold white]")
         tree.add(
@@ -120,9 +120,9 @@ def build(
     base_image: str = typer.Option(
         None, "--base", "-b", help="Base image to use for the root/base target.", show_default=False
     ),
-    tag: str = typer.Option("agipack:{target}", "--tag", "-t", help="Image tag f-string.", show_default=True),
-    prod: bool = typer.Option(False, "--prod", "-p", help="Generate a production Dockerfile.", show_default=False),
-    lint: bool = typer.Option(False, "--lint", "-l", help="Lint the generated Dockerfile.", show_default=False),
+    tag: str = typer.Option("{name}:{target}", "--tag", "-t", help="Image tag f-string.", show_default=True),
+    prod: bool = typer.Option(False, "--prod", help="Generate a production Dockerfile.", show_default=False),
+    lint: bool = typer.Option(False, "--lint", help="Lint the generated Dockerfile.", show_default=False),
 ):
     """Generate the Dockerfile with optional overrides.
 
@@ -132,6 +132,7 @@ def build(
         agi-pack build -c agibuild.yaml -p 3.8.10
         agi-pack build -c agibuild.yaml -b python:3.8.10-slim
         agi-pack build -c agibuild.yaml -t "my-image-name:{target}"
+        agi-pack build -c agibuild.yaml -t "my-image-name:my-target"
         agi-pack build -c agibuild.yaml --prod --lint
     """
     generate(config_filename, filename, python, base_image, tag, prod, lint, build=True)

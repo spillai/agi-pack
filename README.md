@@ -24,6 +24,7 @@
 
 - 😇 **Simplicity**: Make it easy to define and build docker images for ML.
 - 📦 **Best-practices**: Bring best-practices to building docker images for ML -- good base images, multi-stage builds, minimal image sizes, etc.
+- ⚡️ **Fast**: Make it lightning-fast to build and re-build docker images with out-of-the-box caching for apt, conda and pip packages.
 - 🧩 **Modular, Re-usable, Composable**: Define `base`, `dev` and `prod` targets with multi-stage builds, and re-use them wherever possible.
 - 👩‍💻 **Extensible**: Make the YAML / DSL easily hackable and extensible to support the ML ecosystem, as more libraries, drivers, HW vendors, come into the market.
 - ☁️ **Vendor-agnostic**: `agi-pack` is not intended to be built for any specific vendor -- I need this tool for internal purposes, but I decided to build it in the open and keep it simple.
