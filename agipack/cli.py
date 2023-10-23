@@ -55,7 +55,7 @@ def generate(
         None, "--base", "-b", help="Base image to use for the root/base target.", show_default=False
     ),
     tag: str = typer.Option("{name}:{target}", "--tag", "-t", help="Image tag f-string.", show_default=True),
-    _target: str = typer.Option(None, "--target", help="Build specific target.", show_default=False),
+    target: str = typer.Option(None, "--target", help="Build specific target.", show_default=False),
     prod: bool = typer.Option(False, "--prod", help="Generate a production Dockerfile.", show_default=False),
     lint: bool = typer.Option(False, "--lint", help="Lint the generated Dockerfile.", show_default=False),
     build: bool = typer.Option(False, "--build", help="Build the Docker image after generating the Dockerfile."),
@@ -89,42 +89,44 @@ def generate(
     trees = []
     builder = AGIPack(config)
     dockerfiles = builder.render(filename=filename, env="prod" if prod else "dev", skip_base_builds=skip_base_builds)
-    for target, filename in dockerfiles.items():
+    for docker_target, filename in dockerfiles.items():
         # Skip if the target is not the one we want to build
-        if _target is not None and target != _target:
+        if target is not None and docker_target != target:
             continue
-        image_config = config.images[target]
+        image_config = config.images[docker_target]
 
         # Build the Dockerfile using the generated filename and target
         tag_name = (
-            f"{image_config.name}:{target}" if tag is None else tag.format(name=image_config.name, target=target)
+            f"{image_config.name}:{docker_target}"
+            if tag is None
+            else tag.format(name=image_config.name, target=docker_target)
         )
-        cmd = f"docker build -f {filename} --target {target} -t {tag_name} ."
+        cmd = f"docker build -f {filename} --target {docker_target} -t {tag_name} ."
 
         # Print the command to build the Dockerfile
-        tree = Tree(f"📦 [bold white]{target}[/bold white]")
+        tree = Tree(f"📦 [bold white]docker_{target}[/bold white]")
         tree.add(
-            f"[bold green]✓[/bold green] Successfully generated Dockerfile (target=[bold white]{target}[/bold white], filename=[bold white]{filename}[/bold white])."
+            f"[bold green]✓[/bold green] Successfully generated Dockerfile (target=[bold white]{docker_target}[/bold white], filename=[bold white]{filename}[/bold white])."
         ).add(f"[green]`{cmd}`[/green]")
         print(tree)
 
         # Lint the generated Dockerfile using hadolint
         if lint:
-            print(f"🔍 Linting Dockerfile for target [{target}]")
+            print(f"🔍 Linting Dockerfile for target [docker_{target}]")
             builder.lint(filename=filename)
 
         # Build the Docker image using subprocess and print all the output as it happens
         if build:
-            print(f"🚀 Building Docker image for target [{target}]")
-            builder.build(filename=filename, target=target, tags=[tag_name], push=push)
+            print(f"🚀 Building Docker image for target [docker_{target}]")
+            builder.build(filename=filename, target=docker_target, tags=[tag_name], push=push)
 
             tree.add(
-                f"[bold green]✓[/bold green] Successfully built image (target=[bold white]{target}[/bold white], image=[bold white]{tag_name}[/bold white])."
+                f"[bold green]✓[/bold green] Successfully built image (target=[bold white]{docker_target}[/bold white], image=[bold white]{tag_name}[/bold white])."
             )
             # Push the Docker image to the container repository
             if push:
                 tree.add(
-                    f"[bold green]✓[/bold green] Successfully pushed image (target=[bold white]{target}[/bold white], image=[bold white]{tag_name}[/bold white])."
+                    f"[bold green]✓[/bold green] Successfully pushed image (target=[bold white]{docker_target}[/bold white], image=[bold white]{tag_name}[/bold white])."
                 )
             trees.append(tree)
 
@@ -171,14 +173,15 @@ def build(
     generate(
         config_filename,
         filename,
-        python,
-        base_image,
-        tag,
-        target,
-        prod,
-        lint,
+        python=python,
+        base_image=base_image,
+        tag=tag,
+        target=target,
+        prod=prod,
+        lint=lint,
         build=True,
         skip_base_builds=skip_base_builds,
+        push=push,
     )
 
 
