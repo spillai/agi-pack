@@ -139,7 +139,7 @@ $ agi-pack generate -c agibuild.yaml
 
 As you can see, `agi-pack` will generate a **single** Dockerfile for each of the targets defined in the YAML file. You can then build the individual images from the same Dockerfile using docker targets: `docker build -f Dockerfile --target <target> .` where `<target>` is the name of the image target you want to build.
 
-Here's the corresponding [`Dockerfile`](./examples/generated/Dockerfile-multistage-example) that was generated.
+Here's the corresponding [`Dockerfile`](./examples/generated/Dockerfile-multistage) that was generated.
 
 
 ## Why the name? 🤷‍♂️

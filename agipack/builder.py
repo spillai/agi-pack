@@ -198,7 +198,9 @@ class AGIPack:
         process.wait()
 
         if process.returncode != 0:
-            raise Exception(f"Failed to build image [target={target}]")
+            err_msg = f"Failed to build image [target={target}, e={process.stderr}]"
+            logger.error(err_msg)
+            raise Exception(err_msg)
 
         # Push the Docker image
         if push:
