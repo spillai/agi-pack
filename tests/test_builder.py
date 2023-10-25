@@ -1,6 +1,5 @@
 import logging
 import os
-import subprocess
 import tempfile
 from pathlib import Path
 
@@ -32,21 +31,8 @@ def test_build_all(builder):
         dockerfiles = builder.render()
         assert "base-cpu" in dockerfiles
         assert dockerfiles["base-cpu"] == "Dockerfile"
-        assert Path(dockerfiles["base-cpu"]).exists()
-
-    # Use hadolint within docker to lint/check the generated Dockerfile
-    cmd = "docker pull hadolint/hadolint && "
-    cmd += f"docker run --pull=always --rm -i hadolint/hadolint < {dockerfiles['base-cpu']}"
-    logger.info("Linting with hadolint")
-    process = subprocess.Popen(
-        cmd,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        universal_newlines=True,
-        shell=True,
-    )
-    for line in iter(process.stdout.readline, ""):
-        logger.info(line.rstrip())
+        path = Path(dockerfiles["base-cpu"])
+        assert path.exists()
 
 
 def test_builder_cls(test_data_dir):

@@ -7,13 +7,12 @@ from typing import Dict, List, Union
 
 from jinja2 import Environment, FileSystemLoader
 from pydantic.dataclasses import dataclass
-from rich import print
 
 from agipack.config import AGIPackConfig, ImageConfig
 from agipack.constants import AGIPACK_DOCKERFILE_TEMPLATE, AGIPACK_ENV, AGIPACK_TEMPLATE_DIR
 from agipack.version import __version__
 
-logging_level = os.environ.get("AGIPACK_LOGGING_LEVEL", "DEBUG")
+logging_level = os.environ.get("AGIPACK_LOGGING_LEVEL", "ERROR")
 logging.basicConfig(level=logging.getLevelName(logging_level))
 logger = logging.getLogger(__name__)
 
@@ -177,25 +176,15 @@ class AGIPack:
         logger.debug(f"Image tags: {image_tags}")
 
         # Build the Docker image (using buildkit)
-        cmd = ["docker", "build", "-f", filename, "--target", target]
+        cmd = f"docker build -f {filename} --target {target}"
         for tag in image_tags:
-            cmd.extend(["-t", tag])
-        cmd.append(".")
+            cmd += f" -t {tag}"
+        cmd += " ."
 
         logger.debug(f"Running command: {cmd}")
         env = os.environ.copy()
         env.update({"DOCKER_BUILDKIT": "1"})
-        process = subprocess.Popen(
-            cmd,
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            universal_newlines=True,
-            env=env,
-        )
-        for line in iter(process.stdout.readline, ""):
-            print(line, end="")
-        process.wait()
+        process = subprocess.run(cmd, env=env, shell=True)
 
         if process.returncode != 0:
             err_msg = f"Failed to build image [target={target}, e={process.stderr}]"
@@ -215,16 +204,7 @@ class AGIPack:
         cmd = "docker pull hadolint/hadolint && "
         cmd += f"docker run --pull=always --rm -i hadolint/hadolint < {filename}"
         logger.info("Linting with hadolint")
-        process = subprocess.Popen(
-            cmd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            universal_newlines=True,
-            shell=True,
-        )
-        process.wait()
-        for line in iter(process.stdout.readline, ""):
-            print(line, end="")
+        process = subprocess.run(cmd, shell=True)
         return process.returncode == 0
 
     def push(self, tags: List[str]) -> None:
@@ -239,16 +219,6 @@ class AGIPack:
         for tag in tags:
             cmd = f"docker push {tag}"
             logger.debug(f"Running command: {cmd}")
-            process = subprocess.Popen(
-                cmd,
-                stdin=subprocess.PIPE,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                universal_newlines=True,
-                shell=True,
-            )
-            for line in iter(process.stdout.readline, ""):
-                print(line, end="")
-            process.wait()
+            process = subprocess.run(cmd, shell=True)
             if process.returncode != 0:
                 raise Exception(f"Failed to push image [tag={tag}]")
