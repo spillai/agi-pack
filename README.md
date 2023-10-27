@@ -1,6 +1,6 @@
-<h1 align="center" style="font-size:64px;font-weight: bold;font-color:black;">agi-pack</h1>
+<h1 align="center" style="font-size:64px;font-weight: bold;font-color:black;">📦 agi-pack</h1>
 <h4 align="center">
-<i>A Dockerfile builder for AGI — nothing more, nothing less.</i>
+<i>A Dockerfile builder for Machine Learning developers.</i>
 </h4>
 
 <p align="center">
