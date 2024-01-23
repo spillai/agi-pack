@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Union
 
 import yaml
-from pydantic import Extra, validator
+from pydantic import ConfigDict, field_validator
 from pydantic.dataclasses import dataclass
 
 logger = logging.getLogger(__name__)
@@ -28,13 +28,7 @@ class _ImageNode:
         return not len(self.children)
 
 
-class _ForbidExtrasConfig:
-    """Pydantic config to forbid extra fields."""
-
-    extra = Extra.forbid
-
-
-@dataclass(config=_ForbidExtrasConfig)
+@dataclass(config=ConfigDict(extra="forbid"))
 class ImageConfig:
     """AGIPack configuration for a docker target specified in `agibuild.yaml`
 
@@ -128,7 +122,7 @@ class ImageConfig:
         """Check if the base target is root / does not have a parent."""
         return ":" in self.base
 
-    @validator("python", pre=True)
+    @field_validator("python", mode="before")
     def validate_python_version(cls, python) -> str:
         """Validate the python version."""
         if not isinstance(python, str):
@@ -137,7 +131,7 @@ class ImageConfig:
             raise ValueError(f"Python version must be >= 3.6 (found {python})")
         return python
 
-    @validator("add", pre=True)
+    @field_validator("add", mode="before")
     def validate_add(cls, items) -> Tuple[str, str]:
         """Validate the add command."""
         for item in items:
@@ -150,7 +144,7 @@ class ImageConfig:
                 raise ValueError(f"`add` {from_path} does not exist")
         return items
 
-    @validator("command", pre=True)
+    @field_validator("command", mode="before")
     def validate_command_version(cls, cmd) -> List[str]:
         """Validate the command."""
         if isinstance(cmd, str):
@@ -158,6 +152,16 @@ class ImageConfig:
         elif isinstance(cmd, list):
             pass
         return cmd
+
+    @field_validator("env", mode="before")
+    def validate_env(cls, env) -> Dict[str, str]:
+        """Validate the environment variables."""
+        if not isinstance(env, dict):
+            raise ValueError(f"`env` must be a dictionary (type={type(env)})")
+        for key, value in env.items():
+            if isinstance(value, int):
+                env[key] = str(value)
+        return env
 
 
 @dataclass
@@ -204,7 +208,7 @@ class AGIPackConfig:
         """Check if the configuration is for production."""
         return self.prod
 
-    @validator("images")
+    @field_validator("images")
     def validate_python_dependencies_for_nonbase_images(cls, images):
         """Validate that all images have the same python dependency as the base image."""
         py_version = None
