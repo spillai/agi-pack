@@ -17,6 +17,7 @@ def test_configs(test_data_dir):
         test_data_dir / "agibuild-no-system.yaml",
         test_data_dir / "agibuild-no-deps.yaml",
         test_data_dir / "agibuild-different-py-versions.yaml",
+        test_data_dir / "agibuild-with-envs.yaml",
     ]
     for filename in configs:
         logger.info(f"Testing {filename}")

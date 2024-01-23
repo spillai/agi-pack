@@ -1,0 +1,20 @@
+images:
+  base-cpu:
+    system:
+      - wget
+    python: "3.8.10"
+    name: agipack
+    pip:
+      - scikit-learn
+    run:
+      - echo "Hello, world!"
+      - echo "Hello, world 2!"
+    env:
+      LOGURU_LEVEL: WARNING
+      TZ: "America/Los_Angeles"
+      DISABLE_FLAG: 0
+
+  dev-cpu:
+    base: base-cpu
+    system:
+      - build-essential
